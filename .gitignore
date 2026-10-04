@@ -1,0 +1,11 @@
+# Environnement virtuel Python (ne jamais versionner)
+venv/
+.venv/
+
+# Fichiers Python compilés
+__pycache__/
+*.pyc
+
+# Fichiers système
+.DS_Store
+Thumbs.db
