@@ -1,0 +1,3 @@
+# Dépendances Python du projet WebCognitive.
+# Étape 1 : aucune dépendance (pas de code pour l'instant).
+# Les bibliothèques seront ajoutées à partir de l'étape 2 (ingestion / parsing).

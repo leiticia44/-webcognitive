@@ -1,0 +1,34 @@
+{
+  "projet": "WebCognitive Engine",
+  "thematique": "Alimentation et nutrition",
+  "description": "Corpus de documents publics sur les recommandations alimentaires et la nutrition en France.",
+  "nombre_documents": 0,
+  "documents": [
+    {
+      "id": "doc_001",
+      "fichier": "data/raw/pdf/exemple_pnns_recommandations.pdf",
+      "format": "pdf",
+      "titre": "EXEMPLE - Recommandations du PNNS pour les adultes",
+      "auteur": "Santé publique France",
+      "source": "https://www.santepubliquefrance.fr",
+      "date": "AAAA",
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "recommandations",
+      "audit": "Texte sélectionnable. Tableau des repères alimentaires page X."
+    },
+    {
+      "id": "doc_002",
+      "fichier": "data/raw/html/exemple_wikipedia_nutri_score.html",
+      "format": "html",
+      "titre": "EXEMPLE - Nutri-Score (Wikipédia)",
+      "auteur": "Wikipédia",
+      "source": "https://fr.wikipedia.org/wiki/Nutri-Score",
+      "date": "AAAA-MM-JJ (date de téléchargement)",
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "nutri-score",
+      "audit": "Contient l'historique et le fonctionnement du Nutri-Score."
+    }
+  ]
+}
