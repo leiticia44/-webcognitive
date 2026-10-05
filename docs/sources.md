@@ -1,5 +1,6 @@
 # Sources du corpus — où trouver les documents
 
+Objectif : **35 documents minimum** (12 PDF + 12 HTML + 6 DOCX + 5 TXT).
 Toutes les sources ci-dessous sont publiques, gratuites et en français.
 Cocher chaque document une fois téléchargé, audité et ajouté à `corpus_metadata.json`.
 

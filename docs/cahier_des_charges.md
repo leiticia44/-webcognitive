@@ -39,7 +39,7 @@ nutritionnelles officielles.
 
 ## 5. Corpus
 
-- **30 à 50 documents**, tous sur le thème de l'alimentation et de la nutrition
+- **35 à 50 documents**, tous sur le thème de l'alimentation et de la nutrition
 - **4 formats** : PDF, HTML, DOCX, TXT
 - Sources **publiques, gratuites et fiables** (voir `sources.md`)
 - Chaque document est décrit dans `corpus_metadata.json`
