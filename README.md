@@ -14,7 +14,7 @@ capable de répondre à des questions sur un corpus de documents consacré à
 | 3 | Chunking et embeddings | ✅ code et tests |
 | 4 | Base vectorielle et API FastAPI | ✅ code et tests |
 | 5 | RAG avec LLM local (Ollama) | ✅ code et tests |
-| 6 | Front-end web | ⬜ |
+| 6 | Front-end web | ✅ interface de chat |
 | 7 | Dataviz | ⬜ |
 | 8 | Validation finale et soutenance | ⬜ |
 
@@ -31,6 +31,10 @@ webcognitive/
 │   ├── processed/           ← texte nettoyé (JSON), généré à l'étape 2
 │   ├── vectors/             ← segments et vecteurs, générés à l'étape 3
 │   └── chroma/              ← base vectorielle ChromaDB (étape 4)
+├── frontend/                ← interface web de chat (HTML, CSS, JavaScript)
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
 ├── src/
 │   ├── parsers.py           ← lecture PDF / HTML / DOCX / TXT
 │   ├── cleaning.py          ← nettoyage et normalisation du texte
@@ -48,7 +52,8 @@ webcognitive/
 │   ├── test_ingestion.py
 │   ├── test_vectorisation.py
 │   ├── test_indexation.py
-│   └── test_rag.py
+│   ├── test_rag.py
+│   └── test_interface.py
 ├── docs/
 │   ├── cahier_des_charges.md
 │   ├── sources.md           ← où trouver les documents
@@ -318,3 +323,52 @@ Exemple de réponse de `POST /chat` :
 }
 ```
 *(chiffres d'illustration)*
+
+## Étape 6 — Interface web de chat
+
+```bash
+uvicorn src.api:app --reload
+```
+
+Puis ouvrir **http://127.0.0.1:8000/** : l'API sert directement l'interface (dossier `frontend/`).
+
+![Réponse avec ses sources](docs/captures/etape6_reponse_sources.png)
+
+### Choix techniques
+
+- **HTML5, CSS3 et JavaScript sans framework.** L'interface est servie par FastAPI
+  (`/app/`) : rien de plus à installer, et le front-end reste indépendant du back-end
+  (il ne parle à l'API que par des requêtes HTTP).
+- **Requêtes asynchrones** avec `fetch` et `async/await` vers les routes de l'API :
+  `GET /sante` (état de la base et du LLM), `POST /chat` (question → réponse), `POST /index` (réindexation).
+- **100 % hors ligne** : aucune police ni bibliothèque chargée depuis Internet ;
+  l'interface utilise les polices installées sur l'ordinateur.
+- Pour ouvrir l'interface depuis une autre adresse : `index.html?api=http://127.0.0.1:8000`
+  (l'API autorise ces appels grâce au middleware CORS).
+
+### Ce que voit l'utilisateur
+
+| Élément | Rôle |
+|---|---|
+| Indicateur d'état (en haut à droite) | nombre de passages indexés et disponibilité du LLM (Ollama) |
+| Exemples de questions | lancer une première question en un clic |
+| Réponse | texte rédigé par le LLM local ; les citations **[1]**, **[2]** sont des boutons |
+| Sources citées | sous chaque réponse : **nom du fichier, page ou section**, titre, auteur et pertinence |
+| Voir le passage | l'extrait exact transmis au LLM ; un clic sur une citation l'ouvre et le met en évidence |
+| Autres passages consultés | les passages fournis au LLM mais non cités, repliés |
+| Réponse hors corpus | encadré en pointillés, avec la raison (score sous le seuil, LLM non interrogé) |
+| Erreurs | message clair et marche à suivre (API arrêtée, Ollama arrêté, modèle absent) |
+| Réglages de la recherche | nombre de passages (K), seuil, format des documents, modèle, bouton de réindexation |
+
+La **jauge de pertinence** de chaque source reprend les 5 couleurs du Nutri-Score :
+plus la similarité cosinus avec la question est élevée, plus la jauge est pleine et verte.
+
+Pendant la génération (parfois plusieurs dizaines de secondes sur processeur),
+l'interface affiche le temps écoulé. Entrée envoie la question, Maj + Entrée passe à la ligne.
+L'interface s'adapte aux écrans de téléphone et se navigue au clavier.
+
+| Cas hors corpus et erreur | Sur téléphone |
+|---|---|
+| ![Hors corpus et erreur](docs/captures/etape6_hors_corpus_erreur.png) | ![Mobile](docs/captures/etape6_mobile.png) |
+
+*Captures réalisées avec un back-end de démonstration (réponses et chiffres d'exemple).*

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebCognitive — Nutrition</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="entete">
+    <div class="marque">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <h1>WebCognitive</h1>
+        <p class="sous-titre">Questions sur l'alimentation, réponses tirées des documents officiels</p>
+      </div>
+    </div>
+    <div class="etat" id="etat" role="status" aria-live="polite">
+      <span class="pastille" data-etat="attente"></span><span id="etat-texte">Connexion à l'API…</span>
+    </div>
+  </header>
+
+  <main class="principal">
+    <section class="accueil" id="accueil">
+      <h2>Que voulez-vous savoir&nbsp;?</h2>
+      <p>Chaque réponse est rédigée par un modèle de langage qui tourne sur cet ordinateur, à partir
+        des seuls documents du corpus. Les passages utilisés sont affichés sous la réponse, avec le
+        fichier et la page d'où ils viennent.</p>
+      <ul class="suggestions" id="suggestions" aria-label="Exemples de questions">
+        <li><button type="button">Combien de fois par semaine faut-il manger du poisson ?</button></li>
+        <li><button type="button">Quelle quantité de sel par jour au maximum ?</button></li>
+        <li><button type="button">Depuis quand le Nutri-Score est-il recommandé en France ?</button></li>
+        <li><button type="button">Combien de minutes d'activité physique par jour pour un adulte ?</button></li>
+      </ul>
+    </section>
+
+    <ol class="conversation" id="conversation" aria-live="polite" aria-label="Conversation"></ol>
+  </main>
+
+  <footer class="saisie">
+    <form id="formulaire" class="formulaire">
+      <label for="question" class="visuellement-cache">Votre question</label>
+      <textarea id="question" name="question" rows="1" maxlength="1000" required
+                placeholder="Votre question sur l'alimentation"></textarea>
+      <button type="submit" id="envoyer">Poser la question</button>
+    </form>
+
+    <details class="reglages">
+      <summary>Réglages de la recherche</summary>
+      <div class="reglages-grille">
+        <label>Passages consultés
+          <input type="number" id="k" min="1" max="20" value="5">
+        </label>
+        <label>Seuil de pertinence
+          <input type="number" id="seuil" min="0" max="1" step="0.05" value="0.30">
+        </label>
+        <label>Format des documents
+          <select id="format">
+            <option value="">Tous</option>
+            <option value="pdf">PDF</option>
+            <option value="html">Pages web</option>
+            <option value="docx">Word</option>
+            <option value="txt">Texte</option>
+          </select>
+        </label>
+        <label>Modèle de langage
+          <input type="text" id="modele" value="mistral" spellcheck="false">
+        </label>
+      </div>
+      <div class="reglages-actions">
+        <button type="button" id="indexer" class="secondaire">Réindexer le corpus</button>
+        <span id="indexation-etat" role="status" aria-live="polite"></span>
+      </div>
+    </details>
+  </footer>
+
+  <template id="modele-question">
+    <li class="tour tour-question"><p class="bulle"></p></li>
+  </template>
+
+  <template id="modele-reponse">
+    <li class="tour tour-reponse">
+      <article class="reponse">
+        <p class="reponse-texte"></p>
+        <p class="reponse-note"></p>
+        <section class="sources" hidden>
+          <h3 class="sources-titre"></h3>
+          <ol class="sources-liste"></ol>
+          <details class="sources-autres" hidden>
+            <summary></summary>
+            <ol class="sources-liste"></ol>
+          </details>
+        </section>
+      </article>
+    </li>
+  </template>
+
+  <template id="modele-source">
+    <li class="source">
+      <div class="source-tete">
+        <span class="source-numero"></span>
+        <div class="source-origine">
+          <span class="source-fichier"></span>
+          <span class="source-position"></span>
+        </div>
+        <span class="pertinence" role="img"><i></i><i></i><i></i><i></i><i></i></span>
+      </div>
+      <p class="source-titre"></p>
+      <details class="source-extrait">
+        <summary>Voir le passage</summary>
+        <blockquote></blockquote>
+      </details>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,14 +1,16 @@
-"""API REST du WebCognitive Engine — FastAPI (étapes 4 et 5).
+"""API REST du WebCognitive Engine — FastAPI (étapes 4 à 6).
 
 Lancement, depuis la racine du projet :
 
     uvicorn src.api:app --reload
     # ou : python -m src.api
 
+Interface de chat (étape 6)       : http://127.0.0.1:8000/
 Documentation interactive (Swagger) : http://127.0.0.1:8000/docs
 
 Routes :
-    GET    /                 informations sur l'API
+    GET    /                 redirige vers l'interface de chat (/app/)
+    GET    /api              informations sur l'API
     GET    /sante            l'API répond-elle ? combien de segments en base ?
     POST   /index            indexation complète : ingestion → découpage → vectorisation → base
     DELETE /index            vide la base vectorielle
@@ -26,6 +28,9 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 
 from .chunking import CHEVAUCHEMENT_PAR_DEFAUT, TAILLE_PAR_DEFAUT
@@ -35,7 +40,8 @@ from .llm import MODELE_LLM_PAR_DEFAUT, ClientOllama, OllamaIndisponible
 from .rag import K_PAR_DEFAUT, SEUIL_PAR_DEFAUT, repondre
 
 RACINE = Path(__file__).resolve().parent.parent
-VERSION = "0.5.0"
+VERSION = "0.6.0"
+DOSSIER_FRONTEND = RACINE / "frontend"
 
 
 # --------------------------------------------------------------------- modèles de données
@@ -166,9 +172,20 @@ app = FastAPI(
 )
 
 
-@app.get("/", tags=["Informations"])
+# Autorise l'interface à appeler l'API même si elle est ouverte depuis une autre adresse
+# (fichier ouvert directement, serveur de développement…). Usage local uniquement.
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+
+@app.get("/", include_in_schema=False)
+def racine():
+    return RedirectResponse("/app/")
+
+
+@app.get("/api", tags=["Informations"])
 def accueil():
     return {"nom": "WebCognitive Engine", "version": VERSION, "documentation": "/docs",
+            "interface": "/app/",
             "routes": ["/sante", "/index", "/stats", "/documents", "/segments/{id}", "/recherche", "/chat"]}
 
 
@@ -278,6 +295,11 @@ def chat(requete: RequeteChat, moteur: Moteur = Depends(obtenir_moteur)):
                         moteur.llm(requete.modele_llm), requete.k, requete.seuil, filtre)
     except OllamaIndisponible as erreur:
         raise HTTPException(503, str(erreur))
+
+
+# Interface web (étape 6) : fichiers statiques HTML, CSS et JavaScript
+if DOSSIER_FRONTEND.is_dir():
+    app.mount("/app", StaticFiles(directory=DOSSIER_FRONTEND, html=True), name="interface")
 
 
 if __name__ == "__main__":
