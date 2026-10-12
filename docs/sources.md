@@ -4,6 +4,28 @@ Objectif : **35 documents minimum** (12 PDF + 12 HTML + 6 DOCX + 5 TXT).
 Toutes les sources ci-dessous sont publiques, gratuites et en français.
 Cocher chaque document une fois téléchargé, audité et ajouté à `corpus_metadata.json`.
 
+## Pages de référence déjà vérifiées
+
+Ces pages contiennent les réponses des questions de validation : à télécharger en priorité.
+
+| Page | Questions couvertes | Format conseillé |
+|---|---|---|
+| [Nutri-Score — Santé publique France](https://www.santepubliquefrance.fr/determinants-de-sante/nutrition-et-activite-physique/documents/article/nutri-score-un-logo-sur-la-qualite-nutritionnelle-des-produits) | 2, 3 | HTML |
+| [Limiter les produits salés et le sel — Santé.fr](https://www.sante.fr/node/1869523) | 4 | HTML |
+| [Limiter la viande — Santé.fr](https://www.sante.fr/limiter-la-viande-pour-preserver-sa-sante) | 8 | HTML |
+| Recommandations relatives à l'alimentation, à l'activité physique et à la sédentarité pour les adultes (Santé publique France, 2019) — chercher le PDF sur santepubliquefrance.fr | 1, 5, 6, 7, 11 | PDF |
+| [ESTEBAN 2014-2016, chapitre corpulence — Santé publique France](https://www.santepubliquefrance.fr/determinants-de-sante/nutrition-et-activite-physique/documents/rapport-synthese/etude-de-sante-sur-l-environnement-la-biosurveillance-l-activite-physique-et-la-nutrition-esteban-2014-2016.-volet-nutrition.-chapitre-corpulence) | 9 | PDF (lien de téléchargement sur la page) |
+| [Programme national nutrition santé — Wikipédia](https://fr.wikipedia.org/wiki/Programme_national_nutrition_sant%C3%A9) | 12 | HTML |
+| [Obésité — Wikipédia](https://fr.wikipedia.org/wiki/Ob%C3%A9sit%C3%A9) | 13 | HTML |
+
+## Comment vérifier la qualité d'un fichier avant de l'ajouter
+
+Une fois l'étape 2 en place, la commande `python -m src.ingest` produit un rapport
+(`data/processed/rapport_ingestion.json`) qui signale automatiquement :
+- les PDF sans texte extractible (PDF scannés, à écarter) ;
+- les fichiers présents dans `data/raw/` mais absents de `corpus_metadata.json` ;
+- les entrées de `corpus_metadata.json` dont le fichier est introuvable.
+
 ## PDF (~12) → `data/raw/pdf/`
 
 Sites : santepubliquefrance.fr · mangerbouger.fr · anses.fr
