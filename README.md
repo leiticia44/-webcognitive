@@ -13,7 +13,7 @@ capable de répondre à des questions sur un corpus de documents consacré à
 | 2 | Pipeline d'ingestion et de parsing | ✅ code et tests |
 | 3 | Chunking et embeddings | ✅ code et tests |
 | 4 | Base vectorielle et API FastAPI | ✅ code et tests |
-| 5 | RAG avec LLM local (Ollama) | ⬜ |
+| 5 | RAG avec LLM local (Ollama) | ✅ code et tests |
 | 6 | Front-end web | ⬜ |
 | 7 | Dataviz | ⬜ |
 | 8 | Validation finale et soutenance | ⬜ |
@@ -41,11 +41,14 @@ webcognitive/
 │   ├── evaluate.py          ← test et optimisation avec les questions de validation
 │   ├── vectorstore.py       ← base vectorielle ChromaDB (étape 4)
 │   ├── indexation.py        ← pipeline d'indexation complet
-│   └── api.py               ← API REST FastAPI
+│   ├── api.py               ← API REST FastAPI
+│   ├── llm.py               ← client du LLM local (Ollama)
+│   └── rag.py               ← recherche sémantique + pipeline RAG (étape 5)
 ├── tests/
 │   ├── test_ingestion.py
 │   ├── test_vectorisation.py
-│   └── test_indexation.py
+│   ├── test_indexation.py
+│   └── test_rag.py
 ├── docs/
 │   ├── cahier_des_charges.md
 │   ├── sources.md           ← où trouver les documents
@@ -244,3 +247,74 @@ Exemple de rapport renvoyé :
 
 La route `/recherche` sert à vérifier l'index ; le moteur de recherche complet et la
 génération de réponse avec un LLM local viendront à l'étape 5.
+
+## Étape 5 — Recherche sémantique et RAG avec un LLM local
+
+### Installer le LLM local (une seule fois)
+
+1. Installer **Ollama** (libre, Windows / macOS / Linux) : https://ollama.com
+2. Télécharger un modèle : `ollama pull mistral` (environ 4 Go)
+   — sur un ordinateur avec peu de mémoire, `ollama pull llama3.2:3b` (environ 2 Go) puis `--llm llama3.2:3b`.
+3. Ollama tourne ensuite en arrière-plan sur http://localhost:11434 (sinon : `ollama serve`).
+
+### Poser des questions
+
+```bash
+python -m src.rag "Combien de fois par semaine faut-il manger du poisson ?"
+python -m src.rag --validation        # les 15 questions de validation + les 2 pièges
+```
+
+ou depuis l'API (Swagger : http://127.0.0.1:8000/docs) avec **POST `/chat`** :
+
+```bash
+curl -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" \
+     -d '{"question": "Combien de fois par semaine faut-il manger du poisson ?", "k": 5}'
+```
+
+### Le pipeline, étape par étape
+
+1. **Recherche sémantique (Top-K).** La question est transformée en vecteur avec le même
+   modèle que l'indexation, puis comparée à tous les segments par **similarité cosinus**.
+   On garde les K segments les plus proches (5 par défaut). La route `GET /recherche`
+   renvoie ce résultat seul, sans LLM.
+2. **Fusion des voisins.** Deux segments qui se chevauchent dans le même bloc
+   (à cause du chevauchement de l'étape 3) sont réunis en une seule source,
+   pour ne pas envoyer deux fois le même texte au LLM.
+3. **Seuil de pertinence.** Si même le meilleur segment a un score inférieur au seuil
+   (0,30 par défaut), le système répond directement « Je ne sais pas » **sans appeler le LLM** :
+   aucune invention possible. Le seuil se calibre avec la colonne « Piège » de `python -m src.evaluate`.
+4. **Prompt strict.** Les segments sont injectés, numérotés, dans le prompt :
+
+   ```
+   [système] À partir uniquement du contexte textuel fourni ci-dessous, réponds précisément
+             à la question de l'utilisateur. Si la réponse n'est pas dans le contexte, réponds
+             exactement : « Je ne sais pas : cette information n'est pas dans les documents du corpus. »
+             Cite tes sources avec leur numéro entre crochets [1]… Reprends les chiffres exactement…
+   [utilisateur] Contexte :
+             [1] Repères alimentaires — page 4 (spf_recommandations_2019.pdf)
+             Manger du poisson 2 fois par semaine, dont un poisson gras…
+             [2] …
+             Question : Combien de fois par semaine faut-il manger du poisson ?
+   ```
+   La température du modèle est basse (0,1) pour des réponses factuelles et stables.
+5. **Génération et traçabilité.** Le LLM local répond. La réponse est renvoyée avec ses sources :
+   fichier, page ou section, score, extrait, et l'indication des sources réellement citées par le LLM.
+
+Exemple de réponse de `POST /chat` :
+
+```json
+{
+  "question": "Combien de fois par semaine faut-il manger du poisson ?",
+  "reponse": "Il est recommandé de manger du poisson deux fois par semaine, dont un poisson gras [1].",
+  "hors_corpus": false,
+  "llm_appele": true,
+  "modele_llm": "mistral",
+  "meilleur_score": 0.71,
+  "sources": [
+    {"numero": 1, "citee": true, "score": 0.71, "fichier": "data/raw/pdf/spf_recommandations_2019.pdf",
+     "position": "page 4", "extrait": "Manger du poisson 2 fois par semaine, dont un poisson gras…"}
+  ],
+  "durees_s": {"recherche": 0.05, "generation": 6.3}
+}
+```
+*(chiffres d'illustration)*
