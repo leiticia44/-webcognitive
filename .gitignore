@@ -19,3 +19,6 @@ data/processed/*
 
 # Vecteurs générés à l'étape 3 (se régénèrent avec `python -m src.vectorize`)
 data/vectors/
+
+# Base vectorielle ChromaDB (se reconstruit avec POST /index)
+data/chroma/
