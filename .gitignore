@@ -16,3 +16,6 @@ data/processed/*
 
 # Cache des tests
 .pytest_cache/
+
+# Vecteurs générés à l'étape 3 (se régénèrent avec `python -m src.vectorize`)
+data/vectors/
