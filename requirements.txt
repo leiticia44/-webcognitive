@@ -1,3 +1,11 @@
-# Dépendances Python du projet WebCognitive.
-# Étape 1 : aucune dépendance (pas de code pour l'instant).
-# Les bibliothèques seront ajoutées à partir de l'étape 2 (ingestion / parsing).
+# Dépendances Python du projet WebCognitive (logiciels libres uniquement).
+
+# --- Étape 2 : ingestion et parsing ---
+pypdf>=4.0              # lecture des PDF (licence BSD)
+beautifulsoup4>=4.12    # lecture des pages HTML (licence MIT)
+python-docx>=1.1        # lecture des fichiers Word .docx (licence MIT)
+charset-normalizer>=3.0 # détection de l'encodage des .txt (licence MIT)
+
+# --- Tests ---
+pytest>=8.0
+reportlab>=4.0          # sert uniquement à fabriquer des PDF dans les tests

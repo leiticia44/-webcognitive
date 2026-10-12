@@ -9,3 +9,10 @@ __pycache__/
 # Fichiers système
 .DS_Store
 Thumbs.db
+
+# Sorties générées par le pipeline (se régénèrent avec `python -m src.ingest`)
+data/processed/*
+!data/processed/.gitkeep
+
+# Cache des tests
+.pytest_cache/
