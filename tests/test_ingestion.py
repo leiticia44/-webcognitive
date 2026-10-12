@@ -32,6 +32,13 @@ def test_recollage_des_lignes_pdf():
     )
 
 
+def test_titre_pdf_non_recolle():
+    texte = "Les fruits et légumes\nManger au moins 5 portions de fruits et légu-\nmes par jour."
+    assert nettoyer(texte, mode_pdf=True) == (
+        "Les fruits et légumes\nManger au moins 5 portions de fruits et légumes par jour."
+    )
+
+
 def test_entetes_et_numeros_de_page():
     pages = [f"Guide nutrition 2019\nRepère {i}\nGuide nutrition - page {i}\n{i}" for i in range(1, 5)]
     assert retirer_entetes_pieds(pages) == [f"Repère {i}" for i in range(1, 5)]

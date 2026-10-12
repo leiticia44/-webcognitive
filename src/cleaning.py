@@ -76,21 +76,27 @@ def recoller_lignes(texte: str) -> str:
     Une ligne est recollée à la suivante, sauf :
     - si elle termine une phrase (., !, ?, :…) ;
     - si la ligne suivante commence une liste (puce, « 1. », « a) »…) ;
-    - si l'une des deux est vide (séparation de paragraphe).
+    - si l'une des deux est vide (séparation de paragraphe) ;
+    - si elle ressemble à un titre : ligne courte (moins de 45 caractères)
+      suivie d'une ligne qui commence par une majuscule.
     """
     lignes = texte.split("\n")
     resultat: list[str] = []
+    precedente = ""  # dernière ligne physique lue (avant recollage)
     for ligne in lignes:
+        est_titre = len(precedente) < 45 and ligne[:1].isupper()
         if (
             resultat
             and resultat[-1]
             and ligne
-            and not FIN_PHRASE.search(resultat[-1])
+            and not FIN_PHRASE.search(precedente)
             and not DEBUT_LISTE.match(ligne)
+            and not est_titre
         ):
             resultat[-1] = resultat[-1] + " " + ligne
         else:
             resultat.append(ligne)
+        precedente = ligne
     return "\n".join(resultat)
 
 
