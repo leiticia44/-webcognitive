@@ -63,11 +63,18 @@ def detecter_format(chemin: Path) -> str:
         raise FormatNonSupporte(f"extension non prise en charge : {chemin.suffix}")
 
 
-def parser_fichier(chemin: Path) -> DocumentParse:
-    """Point d'entrée : choisit le bon parseur selon l'extension."""
+def parser_fichier(chemin: Path, progression=None) -> DocumentParse:
+    """Point d'entrée : choisit le bon parseur selon l'extension.
+
+    `progression(fait, total)` est appelée pendant la lecture des PDF, page par page,
+    pour afficher l'avancement (les gros PDF peuvent prendre une minute ou plus).
+    """
     fmt = detecter_format(chemin)
-    parseur = {"pdf": parser_pdf, "html": parser_html, "docx": parser_docx, "txt": parser_txt}[fmt]
-    doc = parseur(chemin)
+    if fmt == "pdf":
+        doc = parser_pdf(chemin, progression)
+    else:
+        parseur = {"html": parser_html, "docx": parser_docx, "txt": parser_txt}[fmt]
+        doc = parseur(chemin)
     # On écarte les blocs vides après nettoyage
     doc.blocs = [b for b in doc.blocs if b.texte.strip()]
     if not doc.blocs:
@@ -77,12 +84,15 @@ def parser_fichier(chemin: Path) -> DocumentParse:
 
 # --------------------------------------------------------------------------- PDF
 
-def parser_pdf(chemin: Path) -> DocumentParse:
+def parser_pdf(chemin: Path, progression=None) -> DocumentParse:
     from pypdf import PdfReader
 
     lecteur = PdfReader(str(chemin))
     pages_brutes = []
-    for page in lecteur.pages:
+    total = len(lecteur.pages)
+    for numero, page in enumerate(lecteur.pages, start=1):
+        if progression:
+            progression(numero, total)
         try:
             pages_brutes.append(normaliser_caracteres(page.extract_text() or ""))
         except Exception:  # une page abîmée ne doit pas bloquer tout le document

@@ -19,6 +19,7 @@ import argparse
 import json
 import re
 import sys
+import time
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -86,9 +87,9 @@ def lister_fichiers(dossier_raw: Path) -> list[Path]:
     )
 
 
-def traiter(chemin: Path, entree_meta: dict | None, racine: Path) -> dict:
+def traiter(chemin: Path, entree_meta: dict | None, racine: Path, progression=None) -> dict:
     """Parse un fichier et construit l'enregistrement JSON."""
-    doc = parser_fichier(chemin)
+    doc = parser_fichier(chemin, progression)
     entree_meta = entree_meta or {}
     textes = [b.texte for b in doc.blocs]
     texte_complet = "\n\n".join(textes)
@@ -120,7 +121,8 @@ def traiter(chemin: Path, entree_meta: dict | None, racine: Path) -> dict:
 
 
 def executer(dossier_raw: Path, dossier_sortie: Path, fichier_meta: Path,
-             racine: Path, seulement: Path | None = None) -> dict:
+             racine: Path, seulement: Path | None = None, bavard: bool = False) -> dict:
+    """`bavard=True` affiche l'avancement fichier par fichier (utilisé en ligne de commande)."""
     meta, documents = charger_metadonnees(fichier_meta)
     par_chemin = {normaliser_chemin(d.get("fichier", "")): d for d in documents}
 
@@ -140,16 +142,32 @@ def executer(dossier_raw: Path, dossier_sortie: Path, fichier_meta: Path,
     }
     par_format: Counter = Counter()
 
-    for chemin in a_traiter:
+    for rang, chemin in enumerate(a_traiter, start=1):
         relatif = chemin.relative_to(racine).as_posix()
+        entete = f"[{rang}/{len(a_traiter)}] {relatif}"
+        if bavard:
+            print(entete, end="", flush=True)
+
+        def progression(fait: int, total: int) -> None:
+            # Une ligne qui se met à jour pendant la lecture des PDF
+            if bavard and (fait == 1 or fait % 5 == 0 or fait == total):
+                print(f"\r{entete} — page {fait}/{total}   ", end="", flush=True)
+
+        debut = time.perf_counter()
         try:
-            enregistrement = traiter(chemin, par_chemin.get(normaliser_chemin(relatif)), racine)
+            enregistrement = traiter(chemin, par_chemin.get(normaliser_chemin(relatif)), racine, progression)
         except FormatNonSupporte as erreur:
             rapport["erreurs"].append({"fichier": relatif, "erreur": str(erreur)})
+            if bavard:
+                print(f"\r{entete} — ignoré : {erreur}")
             continue
         except Exception as erreur:  # fichier corrompu, protégé par mot de passe…
             rapport["erreurs"].append({"fichier": relatif, "erreur": f"{type(erreur).__name__} : {erreur}"})
+            if bavard:
+                print(f"\r{entete} — ERREUR : {type(erreur).__name__}")
             continue
+        if bavard:
+            print(f"\r{entete} — ok ({time.perf_counter() - debut:.1f} s)            ")
 
         sortie = dossier_sortie / f"{enregistrement['id']}.json"
         sortie.write_text(json.dumps(enregistrement, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -205,8 +223,15 @@ def main(argv: list[str] | None = None) -> int:
     analyseur.add_argument("--fichier", type=Path, help="ne traiter qu'un seul fichier")
     args = analyseur.parse_args(argv)
 
+    # Évite un plantage si la console Windows ne sait pas afficher ✔ ou ⚠
+    for flux in (sys.stdout, sys.stderr):
+        try:
+            flux.reconfigure(errors="replace")
+        except (AttributeError, ValueError):
+            pass
+    print("Lecture des documents de data/raw/ (les gros PDF peuvent prendre une minute)…\n")
     rapport = executer(args.raw.resolve(), args.sortie.resolve(), args.metadonnees.resolve(),
-                       RACINE, args.fichier)
+                       RACINE, args.fichier, bavard=True)
     afficher(rapport)
     return 1 if rapport["erreurs"] else 0
 
