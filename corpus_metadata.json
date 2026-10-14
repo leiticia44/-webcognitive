@@ -2,7 +2,7 @@
   "projet": "WebCognitive Engine",
   "thematique": "Alimentation et nutrition",
   "description": "Corpus de documents publics sur les recommandations alimentaires et la nutrition en France.",
-  "nombre_documents": 0,
+  "nombre_documents": 6,
   "modele_entree": {
     "_aide": "Copier ce bloc dans la liste 'documents' pour chaque fichier ajouté, puis mettre à jour 'nombre_documents'. Ce modèle est ignoré par le pipeline.",
     "id": "doc_001",
@@ -18,5 +18,90 @@
     "sous_theme": "recommandations",
     "audit": "Texte sélectionnable. Tableau des repères alimentaires page X."
   },
-  "documents": []
+  "documents": [
+    {
+      "id": "doc_001",
+      "fichier": "data/raw/docx/note_groupes_aliments.docx",
+      "format": "docx",
+      "titre": "Les groupes d'aliments et leurs rôles",
+      "auteur": "Leiticia Atmane",
+      "source": "Note de synthèse personnelle",
+      "date": "2026-10-14",
+      "date_telechargement": null,
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "groupes d'aliments",
+      "audit": "Sections par groupe + tableau récapitulatif. Réponse à la question 14."
+    },
+    {
+      "id": "doc_002",
+      "fichier": "data/raw/docx/note_nutriscore.docx",
+      "format": "docx",
+      "titre": "Le Nutri-Score expliqué simplement",
+      "auteur": "Leiticia Atmane",
+      "source": "Note de synthèse personnelle",
+      "date": "2026-10-14",
+      "date_telechargement": null,
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "nutri-score",
+      "audit": "Lettres A à E, arrêté du 31 octobre 2017, calcul, limites."
+    },
+    {
+      "id": "doc_003",
+      "fichier": "data/raw/docx/note_idees_recues.docx",
+      "format": "docx",
+      "titre": "Idées reçues sur l'alimentation",
+      "auteur": "Leiticia Atmane",
+      "source": "Note de synthèse personnelle",
+      "date": "2026-10-14",
+      "date_telechargement": null,
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "idées reçues",
+      "audit": "8 idées reçues confrontées aux recommandations officielles."
+    },
+    {
+      "id": "doc_004",
+      "fichier": "data/raw/docx/note_alimentation_selon_age.docx",
+      "format": "docx",
+      "titre": "L'alimentation selon l'âge",
+      "auteur": "Leiticia Atmane",
+      "source": "Note de synthèse personnelle",
+      "date": "2026-10-14",
+      "date_telechargement": null,
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "publics",
+      "audit": "Enfants, adultes, femmes enceintes, seniors."
+    },
+    {
+      "id": "doc_005",
+      "fichier": "data/raw/docx/note_glossaire.docx",
+      "format": "docx",
+      "titre": "Glossaire de la nutrition",
+      "auteur": "Leiticia Atmane",
+      "source": "Note de synthèse personnelle",
+      "date": "2026-10-14",
+      "date_telechargement": null,
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "glossaire",
+      "audit": "Tableaux de définitions : nutriments, aliments, indicateurs, sigles."
+    },
+    {
+      "id": "doc_006",
+      "fichier": "data/raw/docx/note_chronologie.docx",
+      "format": "docx",
+      "titre": "Chronologie des politiques nutritionnelles en France",
+      "auteur": "Leiticia Atmane",
+      "source": "Note de synthèse personnelle",
+      "date": "2026-10-14",
+      "date_telechargement": null,
+      "langue": "fr",
+      "nombre_pages": null,
+      "sous_theme": "politiques publiques",
+      "audit": "Tableau des dates clés 2001-2022."
+    }
+  ]
 }

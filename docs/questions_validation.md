@@ -30,7 +30,7 @@ le moteur doit retrouver la bonne réponse **et** la bonne source.
 | 11 | Quelle quantité maximale de charcuterie est recommandée par semaine ? | 150 g par semaine | Recommandations Santé publique France 2019 | PDF | | | ⬜ |
 | 12 | Que signifie le sigle PNNS ? | Programme national nutrition santé | Wikipédia, « Programme national nutrition santé » | HTML | | | ⬜ |
 | 13 | À partir de quel IMC parle-t-on d'obésité chez l'adulte ? | IMC supérieur ou égal à 30 kg/m² | Wikipédia « Obésité » ou ameli.fr | HTML | | | ⬜ |
-| 14 | Quels sont les grands groupes d'aliments et leur rôle principal ? | À recopier depuis ta note de synthèse | Ma note « Les groupes d'aliments et leurs rôles » | DOCX | | | ⬜ |
+| 14 | Quels sont les grands groupes d'aliments et leur rôle principal ? | Fruits et légumes (fibres, vitamines, minéraux), féculents (énergie), légumes secs (protéines végétales, fibres), produits laitiers (calcium), viandes-poissons-œufs (protéines, fer), matières grasses (acides gras indispensables) | Ma note « Les groupes d'aliments et leurs rôles » | DOCX | note_groupes_aliments.docx | section : Tableau récapitulatif | ⬜ |
 | 15 | Qu'est-ce qu'un produit ultra-transformé ? | À recopier depuis l'article téléchargé | Article sur les produits ultra-transformés | TXT | | | ⬜ |
 
 Répartition visée : PDF (1, 5, 6, 7, 9, 11), HTML (2, 3, 4, 8, 10, 12, 13), DOCX (14), TXT (15).
