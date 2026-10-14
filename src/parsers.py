@@ -8,11 +8,17 @@ plus tard pour citer précisément la source d'une réponse.
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .cleaning import nettoyer, normaliser_caracteres, retirer_entetes_pieds
+
+# pypdf affiche de nombreux avertissements techniques sur les polices des PDF
+# (« fontTools is required… »). Ils n'empêchent pas l'extraction du texte :
+# on n'affiche que les vraies erreurs.
+logging.getLogger("pypdf").setLevel(logging.ERROR)
 
 # Formats reconnus, d'après l'extension du fichier
 EXTENSIONS = {".pdf": "pdf", ".html": "html", ".htm": "html", ".docx": "docx", ".txt": "txt"}
