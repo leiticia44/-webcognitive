@@ -15,8 +15,8 @@ capable de répondre à des questions sur un corpus de documents consacré à
 | 4 | Base vectorielle et API FastAPI | ✅ code et tests |
 | 5 | RAG avec LLM local (Ollama) | ✅ code et tests |
 | 6 | Front-end web | ✅ interface de chat |
-| 7 | Dataviz | ⬜ |
-| 8 | Validation finale et soutenance | ⬜ |
+| 7 | Dataviz | ✅ tableau de bord du corpus |
+| 8 | Validation finale et soutenance | 🟡 script de validation prêt, à lancer sur le corpus complet |
 
 ## Arborescence
 
@@ -31,10 +31,13 @@ webcognitive/
 │   ├── processed/           ← texte nettoyé (JSON), généré à l'étape 2
 │   ├── vectors/             ← segments et vecteurs, générés à l'étape 3
 │   └── chroma/              ← base vectorielle ChromaDB (étape 4)
-├── frontend/                ← interface web de chat (HTML, CSS, JavaScript)
-│   ├── index.html
+├── frontend/                ← interface web (HTML, CSS, JavaScript)
+│   ├── index.html           ← assistant de chat (étape 6)
 │   ├── style.css
-│   └── app.js
+│   ├── app.js
+│   ├── dataviz.html         ← tableau de bord du corpus (étape 7)
+│   ├── dataviz.css
+│   └── dataviz.js
 ├── src/
 │   ├── parsers.py           ← lecture PDF / HTML / DOCX / TXT
 │   ├── cleaning.py          ← nettoyage et normalisation du texte
@@ -47,17 +50,22 @@ webcognitive/
 │   ├── indexation.py        ← pipeline d'indexation complet
 │   ├── api.py               ← API REST FastAPI
 │   ├── llm.py               ← client du LLM local (Ollama)
-│   └── rag.py               ← recherche sémantique + pipeline RAG (étape 5)
+│   ├── rag.py               ← recherche sémantique + pipeline RAG (étape 5)
+│   ├── dataviz.py           ← statistiques du tableau de bord (étape 7)
+│   └── validation.py        ← rapport de validation final (étape 8)
 ├── tests/
 │   ├── test_ingestion.py
 │   ├── test_vectorisation.py
 │   ├── test_indexation.py
 │   ├── test_rag.py
-│   └── test_interface.py
+│   ├── test_interface.py
+│   ├── test_dataviz.py
+│   └── test_validation.py
 ├── docs/
 │   ├── cahier_des_charges.md
 │   ├── sources.md           ← où trouver les documents
-│   └── questions_validation.md
+│   ├── questions_validation.md
+│   └── rapport_validation.md ← généré à l'étape 8
 ├── corpus_metadata.json     ← fiche descriptive de chaque document
 ├── requirements.txt
 └── .gitignore
@@ -372,3 +380,81 @@ L'interface s'adapte aux écrans de téléphone et se navigue au clavier.
 | ![Hors corpus et erreur](docs/captures/etape6_hors_corpus_erreur.png) | ![Mobile](docs/captures/etape6_mobile.png) |
 
 *Captures réalisées avec un back-end de démonstration (réponses et chiffres d'exemple).*
+
+## Étape 7 — Tableau de bord du corpus (dataviz)
+
+```bash
+uvicorn src.api:app
+```
+
+Puis ouvrir **http://127.0.0.1:8000/app/dataviz.html** (ou le bouton « Tableau de bord » de l'assistant).
+
+Toutes les données viennent de la route **`GET /dataviz`**, calculées par `src/dataviz.py`
+sur le contenu de la base vectorielle : le tableau de bord montre donc exactement ce que
+l'assistant consulte pour répondre. Sans lancer l'API : `python -m src.dataviz`
+affiche un résumé et écrit `data/dataviz.json`.
+
+| Graphique | Ce qu'il montre | Comment c'est calculé |
+|---|---|---|
+| Chiffres clés | documents, segments, mots, formats, longueur moyenne | métadonnées des segments et rapport d'ingestion |
+| Répartition par format | documents et segments par format (PDF, HTML, Word, texte) | regroupement des segments par `format` |
+| Longueur des segments | contrôle du découpage de l'étape 3 (tranches de 50 caractères) | `nombre_caracteres` de chaque segment |
+| Segments par document | quels documents pèsent le plus dans la base | regroupement par `doc_id` |
+| Carte sémantique | chaque segment est un point ; deux points proches ont un sens proche | **ACP** (analyse en composantes principales, par SVD avec numpy) des vecteurs à 384 dimensions |
+| Mots les plus fréquents | vocabulaire du corpus, sans les mots vides | comptage des mots de 3 lettres ou plus |
+| Proximité entre documents | quels documents traitent des mêmes sujets | similarité cosinus entre les vecteurs moyens des documents |
+| Tableau des documents | les mêmes données en texte, avec les mots-clés de chaque document | **TF-IDF** : fréquent dans le document, rare dans les autres |
+| Évaluation | résultats de `python -m src.evaluate`, s'ils existent | `data/vectors/evaluation.json` |
+
+Choix techniques :
+- **SVG dessiné en JavaScript, sans bibliothèque** : la page reste 100 % hors ligne, comme l'assistant.
+- **Interactif** : survol de chaque barre, point ou case pour voir le détail ; filtre par format
+  qui s'applique aux documents, à la carte, à la matrice et au tableau.
+- **Couleurs des formats fixes et lisibles par les daltoniens** (palette vérifiée : écart ΔE ≥ 9
+  entre couleurs voisines) ; chaque couleur est accompagnée d'une légende ou d'une étiquette.
+- La carte montre au plus 2 000 points (échantillon régulier au-delà) pour rester fluide.
+
+![Tableau de bord](docs/captures/etape7_tableau_de_bord.png)
+
+![Carte sémantique et similarités](docs/captures/etape7_carte_similarites.png)
+
+*Captures réalisées sur un petit corpus de démonstration (les 6 notes DOCX et 4 fichiers d'exemple),
+avec un encodeur de test à la place du modèle d'embedding : la carte et la matrice seront
+différentes avec le vrai modèle et le corpus complet.*
+
+## Étape 8 — Validation finale
+
+Une fois le corpus indexé et Ollama lancé :
+
+```bash
+python -m src.validation              # mêmes options que src.rag : -k, --seuil, --llm
+```
+
+Le script pose **toutes les questions** de `docs/questions_validation.md` et les **questions pièges**
+au pipeline RAG complet, puis écrit :
+- `docs/rapport_validation.md` : le rapport à joindre au rendu et à montrer en soutenance ;
+- `data/validation.json` : les mêmes résultats en JSON.
+
+| Contrôle automatique | Règle |
+|---|---|
+| Le système a répondu | la réponse n'est pas « je ne sais pas » |
+| Source retrouvée | le fichier attendu est parmi les passages retrouvés (Top-K) |
+| Source citée | le fichier attendu est cité dans la réponse ([1], [2]…) |
+| Chiffres | tous les nombres de la réponse attendue sont dans la réponse (« 2,4 » = « 2.4 ») |
+| Piège évité | pour une question hors corpus, le système répond qu'il ne sait pas |
+
+Les contrôles de source ne portent que sur les questions dont la colonne « Fichier source » est remplie.
+La justesse du contenu reste à vérifier par une personne : le rapport place la réponse attendue
+et la réponse obtenue côte à côte, avec une case « Correcte » à cocher.
+
+### Checklist avant la soutenance
+
+1. Tous les documents dans `data/raw/` et décrits dans `corpus_metadata.json`.
+2. `python -m src.ingest` : aucune erreur, avertissements relus.
+3. Colonnes « Fichier source » et « Page / section » remplies dans `docs/questions_validation.md`.
+4. `python -m src.evaluate --modeles multilingue,minilm` : choix de la taille et du modèle.
+5. `POST /index` avec les réglages retenus.
+6. `python -m src.validation` : rapport relu, cases « Correcte » cochées, seuil ajusté si besoin.
+7. Captures refaites sur le vrai corpus (assistant et tableau de bord).
+8. `python -m pytest -v` : tous les tests passent.
+
