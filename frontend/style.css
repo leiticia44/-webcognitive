@@ -54,6 +54,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .entete h1 { margin: 0; font-size: 1.15rem; letter-spacing: -0.01em; }
 .sous-titre { margin: 0; font-size: 0.875rem; color: var(--encre-douce); }
 .etat { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--encre-douce); }
+.entete-droite { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.lien-tableau {
+  padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--trait);
+  color: var(--encre); text-decoration: none; font-size: 0.875rem;
+}
+.lien-tableau:hover { background: var(--fond); }
 .pastille { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--trait); flex: none; }
 .pastille[data-etat="ok"] { background: var(--vert); }
 .pastille[data-etat="partiel"] { background: var(--n3); }

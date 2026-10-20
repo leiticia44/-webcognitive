@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebCognitive — Tableau de bord du corpus</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dataviz.css">
+</head>
+<body class="page-dataviz">
+  <header class="entete">
+    <div class="marque">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <h1>WebCognitive</h1>
+        <p class="sous-titre">Tableau de bord du corpus indexé</p>
+      </div>
+    </div>
+    <nav class="navigation" aria-label="Pages">
+      <a href="index.html">Assistant</a>
+      <a href="dataviz.html" aria-current="page">Tableau de bord</a>
+    </nav>
+  </header>
+
+  <main class="tableau" id="tableau">
+    <p class="message" id="message" role="status" aria-live="polite">Chargement des données…</p>
+
+    <div id="contenu" hidden>
+      <section class="intro">
+        <h2>Ce que contient le moteur</h2>
+        <p>Toutes les données de cette page sont calculées sur la base vectorielle, c'est-à-dire sur
+          les passages que l'assistant consulte réellement pour répondre.</p>
+        <p class="reglages-indexation" id="reglages"></p>
+      </section>
+
+      <section class="chiffres" aria-label="Chiffres clés" id="chiffres"></section>
+
+      <div class="filtres" role="group" aria-label="Filtrer par format">
+        <span class="filtres-titre">Format</span>
+        <div class="filtres-boutons" id="filtres"></div>
+      </div>
+
+      <div class="grille">
+        <article class="bloc">
+          <header><h3>Répartition par format</h3>
+            <p>Nombre de documents et de segments pour chaque format de fichier.</p></header>
+          <div class="graphique" id="g-formats"></div>
+        </article>
+
+        <article class="bloc">
+          <header><h3>Longueur des segments</h3>
+            <p id="longueurs-note">Nombre de segments par tranche de 50 caractères.</p></header>
+          <div class="graphique" id="g-longueurs"></div>
+        </article>
+
+        <article class="bloc bloc-large">
+          <header><h3>Segments par document</h3>
+            <p>Un long document donne beaucoup de segments, donc plus de chances d'être cité.</p></header>
+          <div class="legende" id="legende-documents"></div>
+          <div class="graphique" id="g-documents"></div>
+        </article>
+
+        <article class="bloc bloc-large">
+          <header><h3>Carte sémantique des segments</h3>
+            <p id="carte-note">Chaque point est un segment. Les vecteurs à 384 dimensions sont projetés
+              sur un plan par analyse en composantes principales : deux points proches parlent de la même chose.</p></header>
+          <div class="legende" id="legende-carte"></div>
+          <div class="graphique graphique-carte" id="g-carte"></div>
+        </article>
+
+        <article class="bloc">
+          <header><h3>Mots les plus fréquents</h3>
+            <p>Sur l'ensemble du corpus, sans les mots vides (le, de, pour…).</p></header>
+          <div class="graphique" id="g-mots"></div>
+        </article>
+
+        <article class="bloc">
+          <header><h3>Proximité entre documents</h3>
+            <p>Similarité cosinus entre les vecteurs moyens des documents : plus la case est foncée, plus les sujets se ressemblent.</p></header>
+          <div class="graphique" id="g-similarites"></div>
+          <div class="echelle" id="echelle-similarites" aria-hidden="true"></div>
+        </article>
+
+        <article class="bloc bloc-large" id="bloc-evaluation" hidden>
+          <header><h3>Évaluation des tailles de segments</h3>
+            <p>Résultats de <code>python -m src.evaluate</code> : part des questions de validation dont
+              la bonne source arrive en 1<sup>re</sup> position et dans les 5 premiers résultats.</p></header>
+          <div class="tableau-defilant"><table class="donnees" id="t-evaluation"></table></div>
+        </article>
+
+        <article class="bloc bloc-large">
+          <header><h3>Les documents en détail</h3>
+            <p>La même information sous forme de tableau, avec les mots-clés propres à chaque document (TF-IDF).</p></header>
+          <div class="tableau-defilant"><table class="donnees" id="t-documents"></table></div>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <div class="infobulle" id="infobulle" role="tooltip" hidden></div>
+  <script src="dataviz.js"></script>
+</body>
+</html>

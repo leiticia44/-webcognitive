@@ -108,6 +108,14 @@ class BaseChroma:
         tout = self._collection.get(include=["metadatas"])
         return resume_documents(tout["metadatas"])
 
+    def exporter(self) -> tuple[list[str], list[str], list[dict], np.ndarray]:
+        """Tout le contenu de la base : identifiants, textes, métadonnées et vecteurs (étape 7)."""
+        if not self.compter():
+            return [], [], [], np.zeros((0, 0), dtype=np.float32)
+        r = self._collection.get(include=["documents", "metadatas", "embeddings"])
+        return list(r["ids"]), list(r["documents"]), list(r["metadatas"]), \
+            np.asarray(r["embeddings"], dtype=np.float32)
+
     def segment(self, identifiant: str) -> dict | None:
         r = self._collection.get(ids=[identifiant], include=["documents", "metadatas"])
         if not r["ids"]:
@@ -168,6 +176,9 @@ class BaseMemoire:
 
     def documents(self) -> list[dict]:
         return resume_documents(self._metas)
+
+    def exporter(self) -> tuple[list[str], list[str], list[dict], np.ndarray]:
+        return list(self._ids), list(self._textes), [dict(m) for m in self._metas], self._vecteurs.copy()
 
     def segment(self, identifiant: str) -> dict | None:
         if identifiant not in self._ids:

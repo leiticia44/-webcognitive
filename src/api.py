@@ -6,6 +6,7 @@ Lancement, depuis la racine du projet :
     # ou : python -m src.api
 
 Interface de chat (étape 6)       : http://127.0.0.1:8000/
+Tableau de bord (étape 7)         : http://127.0.0.1:8000/app/dataviz.html
 Documentation interactive (Swagger) : http://127.0.0.1:8000/docs
 
 Routes :
@@ -19,6 +20,7 @@ Routes :
     GET    /segments/{id}    un segment, avec son texte et ses métadonnées
     GET    /recherche?q=…    recherche sémantique : les K segments les plus proches d'une question
     POST   /chat             RAG : réponse du LLM local fondée sur le corpus, avec ses sources
+    GET    /dataviz          données du tableau de bord du corpus (étape 7)
 """
 
 from __future__ import annotations
@@ -40,7 +42,7 @@ from .llm import MODELE_LLM_PAR_DEFAUT, ClientOllama, OllamaIndisponible
 from .rag import K_PAR_DEFAUT, SEUIL_PAR_DEFAUT, repondre
 
 RACINE = Path(__file__).resolve().parent.parent
-VERSION = "0.6.0"
+VERSION = "0.7.0"
 DOSSIER_FRONTEND = RACINE / "frontend"
 
 
@@ -186,7 +188,9 @@ def racine():
 def accueil():
     return {"nom": "WebCognitive Engine", "version": VERSION, "documentation": "/docs",
             "interface": "/app/",
-            "routes": ["/sante", "/index", "/stats", "/documents", "/segments/{id}", "/recherche", "/chat"]}
+            "tableau_de_bord": "/app/dataviz.html",
+            "routes": ["/sante", "/index", "/stats", "/documents", "/segments/{id}", "/recherche", "/chat",
+                       "/dataviz"]}
 
 
 @app.get("/sante", tags=["Informations"])
@@ -297,7 +301,17 @@ def chat(requete: RequeteChat, moteur: Moteur = Depends(obtenir_moteur)):
         raise HTTPException(503, str(erreur))
 
 
-# Interface web (étape 6) : fichiers statiques HTML, CSS et JavaScript
+@app.get("/dataviz", tags=["Visualisation"], summary="Données du tableau de bord du corpus")
+def dataviz(moteur: Moteur = Depends(obtenir_moteur)):
+    """Statistiques calculées sur le contenu de la base vectorielle (étape 7) :
+    chiffres clés, répartition par format, segments par document, longueur des segments,
+    mots-clés (TF-IDF), carte sémantique (ACP des vecteurs en 2D) et similarité entre documents."""
+    from .dataviz import calculer
+    return calculer(moteur.base, moteur.racine / "data" / "processed",
+                    moteur.racine / "data" / "vectors" / "evaluation.json")
+
+
+# Interface web (étapes 6 et 7) : fichiers statiques HTML, CSS et JavaScript
 if DOSSIER_FRONTEND.is_dir():
     app.mount("/app", StaticFiles(directory=DOSSIER_FRONTEND, html=True), name="interface")
 

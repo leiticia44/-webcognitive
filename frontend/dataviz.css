@@ -1,0 +1,116 @@
+/* WebCognitive — tableau de bord du corpus (étape 7) */
+
+.page-dataviz {
+  /* Couleurs des formats : ordre fixe, validé pour le daltonisme (écart ΔE ≥ 9 entre voisines).
+     Le jaune et le vert d'eau sont peu contrastés : chaque marque a donc aussi une étiquette. */
+  --f-pdf: #2a78d6;
+  --f-html: #eb6834;
+  --f-docx: #1baf7a;
+  --f-txt: #eda100;
+  --f-autre: #8a8f89;
+  --serie: #038141;          /* graphiques à une seule série */
+  --grille: #dfe6df;
+}
+
+.navigation { display: flex; gap: 0.25rem; }
+.navigation a {
+  padding: 0.4rem 0.8rem; border-radius: 999px;
+  color: var(--encre-douce); text-decoration: none; font-size: 0.9rem;
+}
+.navigation a:hover { background: var(--fond); color: var(--encre); }
+.navigation a[aria-current="page"] { background: var(--encre); color: var(--surface); }
+
+.tableau {
+  width: 100%; max-width: 72rem; margin: 0 auto;
+  padding: clamp(1.25rem, 4vh, 2.5rem) clamp(1rem, 3vw, 2rem) 3rem;
+}
+.message { color: var(--encre-douce); }
+.message[data-type="erreur"] { color: var(--alerte); }
+
+.intro h2 {
+  font: 600 clamp(1.7rem, 4vw, 2.3rem)/1.1 var(--lecture);
+  letter-spacing: -0.015em; margin: 0 0 0.5rem;
+}
+.intro p { margin: 0 0 0.4rem; max-width: 44rem; color: var(--encre-douce); }
+.reglages-indexation { font-size: 0.875rem; }
+
+/* ---------------------------------------------------------------- chiffres clés */
+
+.chiffres {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem; margin: 1.5rem 0;
+}
+.chiffre {
+  background: var(--surface); border: 1px solid var(--trait); border-radius: var(--rayon);
+  padding: 0.9rem 1rem;
+}
+.chiffre strong {
+  display: block; font: 600 2rem/1.1 var(--lecture); font-variant-numeric: tabular-nums;
+}
+.chiffre span { font-size: 0.875rem; color: var(--encre-douce); }
+
+/* ---------------------------------------------------------------- filtres */
+
+.filtres { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.filtres-titre { font-size: 0.875rem; color: var(--encre-douce); }
+.filtres-boutons { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.filtres-boutons button {
+  display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;
+  padding: 0.35rem 0.75rem; border-radius: 999px;
+  border: 1px solid var(--trait); background: var(--surface); font-size: 0.875rem;
+}
+.filtres-boutons button[aria-pressed="true"] { background: var(--encre); border-color: var(--encre); color: var(--surface); }
+
+/* ---------------------------------------------------------------- grille de blocs */
+
+.grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.bloc {
+  background: var(--surface); border: 1px solid var(--trait); border-radius: var(--rayon);
+  padding: 1rem 1.1rem 1.1rem; min-width: 0;
+}
+.bloc-large { grid-column: 1 / -1; }
+.bloc h3 { margin: 0 0 0.2rem; font-size: 1rem; }
+.bloc header p { margin: 0 0 0.75rem; font-size: 0.875rem; color: var(--encre-douce); }
+@media (max-width: 760px) { .grille { grid-template-columns: 1fr; } }
+
+.graphique { position: relative; width: 100%; }
+.graphique svg { display: block; width: 100%; height: auto; overflow: visible; }
+.graphique text { font: 12px var(--interface); fill: var(--encre-douce); }
+.graphique .valeur { fill: var(--encre); font-variant-numeric: tabular-nums; }
+.graphique .axe { stroke: var(--trait); stroke-width: 1; }
+.graphique .grille-ligne { stroke: var(--grille); stroke-width: 1; }
+.graphique .marque-active { stroke: var(--encre); stroke-width: 2; }
+.vide { margin: 0.5rem 0; font-size: 0.875rem; color: var(--encre-douce); }
+
+.legende { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin-bottom: 0.5rem; font-size: 0.8125rem; color: var(--encre-douce); }
+.legende span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.puce-format { width: 0.7rem; height: 0.7rem; border-radius: 3px; flex: none; }
+.puce-format.ronde { border-radius: 50%; }
+
+.echelle {
+  display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;
+  font-size: 0.75rem; color: var(--encre-douce);
+}
+.echelle i { flex: 1; max-width: 10rem; height: 0.5rem; border-radius: 999px; }
+
+/* ---------------------------------------------------------------- infobulle */
+
+.infobulle {
+  position: fixed; z-index: 10; pointer-events: none;
+  max-width: 18rem; padding: 0.55rem 0.7rem;
+  background: var(--encre); color: var(--surface);
+  border-radius: 8px; font-size: 0.8125rem; line-height: 1.4;
+  box-shadow: 0 6px 18px rgb(20 39 29 / 0.25);
+}
+.infobulle strong { display: block; }
+.infobulle .discret { opacity: 0.75; }
+
+/* ---------------------------------------------------------------- tableaux */
+
+.tableau-defilant { overflow-x: auto; }
+.donnees { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.donnees th, .donnees td { padding: 0.45rem 0.6rem; text-align: left; border-bottom: 1px solid var(--grille); vertical-align: top; }
+.donnees th { font-weight: 600; color: var(--encre-douce); white-space: nowrap; }
+.donnees td.nombre, .donnees th.nombre { text-align: right; font-variant-numeric: tabular-nums; }
+.donnees .mots-cles { color: var(--encre-douce); }
+.format-etiquette { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
