@@ -332,6 +332,14 @@ Exemple de réponse de `POST /chat` :
 ```
 *(chiffres d'illustration)*
 
+### Sans modèle de langage : le mode extractif
+
+Si Ollama ne répond pas (non installé, arrêté, modèle absent), `POST /chat` ne renvoie plus
+d'erreur : la réponse est **recopiée telle quelle** des phrases du meilleur passage les plus
+proches de la question, avec sa source [1] (`"mode": "extractif"`). Aucune génération, donc
+aucune invention possible ; l'interface l'indique sous la réponse. Le seuil de pertinence
+s'applique toujours : hors corpus, la réponse reste « je ne sais pas ».
+
 ## Étape 6 — Interface web de chat
 
 ```bash

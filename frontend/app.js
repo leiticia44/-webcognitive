@@ -124,7 +124,11 @@ function afficherReponse(tour, r) {
   remplirTexte(tour.querySelector(".reponse-texte"), r.reponse, numeros);
 
   const note = tour.querySelector(".reponse-note");
-  if (!r.llm_appele) {
+  if (r.mode === "extractif") {
+    tour.classList.add("extractif");
+    note.textContent = `Modèle de langage indisponible (Ollama) : réponse recopiée telle quelle ` +
+      `du passage le plus proche de la question, sans reformulation.`;
+  } else if (!r.llm_appele) {
     note.textContent = `Aucun passage du corpus n'est assez proche de la question ` +
       `(meilleur score ${nombre.format(r.meilleur_score)}, seuil ${nombre.format(r.seuil)}). ` +
       `Le modèle de langage n'a pas été interrogé.`;
