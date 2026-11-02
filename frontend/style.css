@@ -114,6 +114,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 0.9rem 1rem;
   border: 1px dashed var(--encre-douce); border-radius: var(--rayon);
 }
+.tour-reponse.extractif .reponse-texte { font-style: italic; }
 .tour-reponse.erreur .reponse-texte { color: var(--alerte); font-family: var(--interface); font-size: 1rem; }
 
 .citation {

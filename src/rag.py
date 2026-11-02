@@ -124,8 +124,34 @@ def est_inconnue(reponse: str) -> bool:
 
 # --------------------------------------------------------------------- pipeline
 
+def reponse_extractive(question: str, sources: list[dict], encodeur, phrases_max: int = 2) -> str:
+    """Réponse de secours sans LLM : les phrases du meilleur passage les plus proches de la question.
+
+    Le texte est recopié tel quel (aucune génération, donc aucune invention possible),
+    entre guillemets et suivi de la citation [1].
+    """
+    from .chunking import decouper_phrases
+    import numpy as np
+
+    texte = sources[0]["texte"]
+    phrases = [texte[d:f].strip() for d, f in decouper_phrases(texte)]
+    phrases = [p for p in phrases if len(p) > 20] or [texte.strip()]
+    vecteurs = encodeur.encoder([question] + phrases)
+    scores = vecteurs[1:] @ vecteurs[0]
+    meilleures = sorted(np.argsort(-scores)[:phrases_max])  # dans l'ordre du texte
+    extrait = " ".join(phrases[i] for i in meilleures)
+    return f"« {extrait} » [1]"
+
+
 def repondre(question: str, base, encodeur, llm: LLM, k: int = K_PAR_DEFAUT,
-             seuil: float = SEUIL_PAR_DEFAUT, filtre: dict | None = None) -> dict:
+             seuil: float = SEUIL_PAR_DEFAUT, filtre: dict | None = None,
+             secours_extractif: bool = False) -> dict:
+    """Pipeline RAG complet.
+
+    `secours_extractif=True` : si le LLM ne répond pas (Ollama arrêté, modèle absent),
+    la réponse est extraite telle quelle du meilleur passage au lieu de lever une erreur
+    (mode « extractif », utilisé par l'API et l'interface).
+    """
     debut = time.perf_counter()
     trouves = rechercher(question, base, encodeur, k, filtre)
     duree_recherche = time.perf_counter() - debut
@@ -141,20 +167,29 @@ def repondre(question: str, base, encodeur, llm: LLM, k: int = K_PAR_DEFAUT,
 
     if not sources or meilleur < seuil:
         # Rien d'assez proche dans le corpus : on ne demande rien au LLM (pas de risque d'invention)
-        resultat.update(reponse=REPONSE_INCONNUE, hors_corpus=True, llm_appele=False, sources=[],
+        resultat.update(reponse=REPONSE_INCONNUE, mode="seuil", hors_corpus=True, llm_appele=False, sources=[],
                         durees_s={"recherche": round(duree_recherche, 2), "generation": 0.0})
         return resultat
 
     debut = time.perf_counter()
-    reponse = llm.generer(construire_messages(question, sources))
+    mode = "generatif"
+    try:
+        reponse = llm.generer(construire_messages(question, sources))
+    except Exception as erreur:
+        from .llm import OllamaIndisponible
+        if not (secours_extractif and isinstance(erreur, OllamaIndisponible)):
+            raise
+        reponse, mode = reponse_extractive(question, sources, encodeur), "extractif"
+        resultat["avertissement"] = str(erreur)
     duree_generation = time.perf_counter() - debut
     cites = numeros_cites(reponse, len(sources))
-    inconnue = est_inconnue(reponse)
+    inconnue = mode == "generatif" and est_inconnue(reponse)
 
     resultat.update(
         reponse=reponse,
+        mode=mode,
         hors_corpus=inconnue,
-        llm_appele=True,
+        llm_appele=mode == "generatif",
         sources=[{
             "numero": i,
             "citee": i in cites,

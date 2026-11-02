@@ -221,3 +221,41 @@ def test_api_chat(client_api):
     assert corps["llm_appele"] and corps["sources"][0]["citee"] and corps["sources"][0]["position"] == "page 1"
     hors = client_api.post("/chat", json={"question": "Recette de la blanquette de veau"}).json()
     assert hors["hors_corpus"] and not hors["llm_appele"]
+
+
+# --------------------------------------------------------------------- mode extractif (sans LLM)
+
+class LLMEnPanne:
+    nom = "mistral"
+
+    def generer(self, messages):
+        raise OllamaIndisponible("Ollama ne répond pas sur http://localhost:11434 : vérifiez qu'il est lancé (ollama serve).")
+
+
+def test_secours_extractif_quand_ollama_ne_repond_pas(base):
+    question = "Combien de fois par semaine manger du poisson ?"
+    with pytest.raises(OllamaIndisponible):                     # par défaut : l'erreur remonte
+        repondre(question, base, EncodeurFactice(), LLMEnPanne(), k=3, seuil=0.1)
+
+    r = repondre(question, base, EncodeurFactice(), LLMEnPanne(), k=3, seuil=0.1, secours_extractif=True)
+    assert r["mode"] == "extractif" and not r["llm_appele"] and not r["hors_corpus"]
+    assert r["reponse"].startswith("« ") and r["reponse"].endswith("» [1]")
+    assert "poisson" in r["reponse"]                             # texte recopié du meilleur passage
+    assert r["sources"][0]["citee"] and "ollama serve" in r["avertissement"]
+
+
+def test_secours_extractif_respecte_le_seuil(base):
+    r = repondre("Recette de la blanquette de veau", base, EncodeurFactice(), LLMEnPanne(),
+                 seuil=0.9, secours_extractif=True)
+    assert r["mode"] == "seuil" and r["hors_corpus"] and r["reponse"] == REPONSE_INCONNUE
+
+
+def test_api_chat_sans_ollama(client_api):
+    """Ollama arrêté : l'API répond quand même (200), en mode extractif, au lieu d'une erreur 503."""
+    client_api.post("/index", json={"ingestion": False})
+    moteur = next(iter(client_api.app.dependency_overrides.values()))()
+    moteur.llm = lambda modele="mistral": LLMEnPanne()
+    r = client_api.post("/chat", json={"question": "Combien de fois manger du poisson par semaine ?", "seuil": 0.1})
+    assert r.status_code == 200
+    corps = r.json()
+    assert corps["mode"] == "extractif" and corps["reponse"].endswith("[1]") and corps["avertissement"]

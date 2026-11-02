@@ -38,7 +38,7 @@ from pydantic import BaseModel, Field, model_validator
 from .chunking import CHEVAUCHEMENT_PAR_DEFAUT, TAILLE_PAR_DEFAUT
 from .embeddings import MODELE_PAR_DEFAUT, MODELES_CONNUS
 from .indexation import indexer
-from .llm import MODELE_LLM_PAR_DEFAUT, ClientOllama, OllamaIndisponible
+from .llm import MODELE_LLM_PAR_DEFAUT, ClientOllama
 from .rag import K_PAR_DEFAUT, SEUIL_PAR_DEFAUT, repondre
 
 RACINE = Path(__file__).resolve().parent.parent
@@ -109,6 +109,9 @@ class ReponseChat(BaseModel):
     meilleur_score: float
     sources: list[Source]
     durees_s: dict
+    mode: str = Field("generatif", description="generatif (réponse du LLM), extractif (LLM indisponible : "
+                                               "phrases recopiées du meilleur passage) ou seuil (hors corpus)")
+    avertissement: Optional[str] = Field(None, description="Pourquoi le mode extractif a été utilisé")
 
 
 class ReponseRecherche(BaseModel):
@@ -289,16 +292,17 @@ def chat(requete: RequeteChat, moteur: Moteur = Depends(obtenir_moteur)):
     2. si le meilleur segment est sous le `seuil`, la réponse est « je ne sais pas » **sans appeler le LLM** ;
     3. sinon les segments sont injectés, numérotés [1], [2]…, dans un prompt strict qui oblige
        le LLM à répondre **uniquement** à partir de ce contexte et à citer ses sources ;
-    4. le LLM local (Ollama) génère la réponse, renvoyée avec les sources et leurs extraits.
+    4. le LLM local (Ollama) génère la réponse, renvoyée avec les sources et leurs extraits ;
+    5. si Ollama ne répond pas, la réponse est **extraite** du meilleur passage (`mode` = « extractif »).
     """
     if not moteur.base.compter():
         raise HTTPException(409, "La base est vide : lancez d'abord POST /index.")
     filtre = {c: v for c, v in (("doc_id", requete.doc_id), ("format", requete.format)) if v}
-    try:
-        return repondre(requete.question, moteur.base, moteur.encodeur_de_la_base(),
-                        moteur.llm(requete.modele_llm), requete.k, requete.seuil, filtre)
-    except OllamaIndisponible as erreur:
-        raise HTTPException(503, str(erreur))
+    # Si Ollama ne répond pas, la réponse est extraite du meilleur passage (mode « extractif »)
+    # au lieu d'une erreur : l'application reste utilisable sans modèle de langage.
+    return repondre(requete.question, moteur.base, moteur.encodeur_de_la_base(),
+                    moteur.llm(requete.modele_llm), requete.k, requete.seuil, filtre,
+                    secours_extractif=True)
 
 
 @app.get("/dataviz", tags=["Visualisation"], summary="Données du tableau de bord du corpus")
