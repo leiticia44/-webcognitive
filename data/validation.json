@@ -1,0 +1,858 @@
+{
+  "date": "2026-11-16T12:42:14",
+  "reglages": {
+    "k": 5,
+    "seuil": 0.3,
+    "modele_llm": "mistral",
+    "modele_embedding": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "taille": 500,
+    "chevauchement": 100,
+    "segments_en_base": 9690
+  },
+  "resume": {
+    "questions": 15,
+    "repondues": 15,
+    "questions_avec_source": 1,
+    "source_retrouvee": 1,
+    "source_citee": 0,
+    "questions_avec_chiffres": 11,
+    "chiffres_retrouves": 7,
+    "pieges": 2,
+    "pieges_evites": 0,
+    "generation_moyenne_s": 2.23
+  },
+  "questions": [
+    {
+      "numero": "1",
+      "question": "Combien de portions de fruits et légumes faut-il manger par jour ?",
+      "attendue": "Au moins 5 (par exemple 3 portions de légumes et 2 fruits)",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Au moins 5 fruits et légumes par jour (par exemple 3 portions de légumes et 2 fruits) qui apportent des antioxydants, des vitamines et des minéraux. Des légumes secs au moins 2 fois par semaine : lentilles, haricots secs, pois chiches, etc. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.811,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": true,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.811,
+          "fichier": "data/raw/pdf/244900_spf00001365.pdf",
+          "position": "page 2"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.8088,
+          "fichier": "data/raw/docx/note_groupes_aliments.docx",
+          "position": "section : Les fruits et légumes"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.7738,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 33"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.7664,
+          "fichier": "data/raw/html/Augmenter les fruits et légumes _ Manger Bouger.html",
+          "position": "section : La recommandation"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.7472,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 77"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.06,
+        "generation": 2.21
+      }
+    },
+    {
+      "numero": "2",
+      "question": "Combien de lettres compte le Nutri-Score ?",
+      "attendue": "5 lettres, de A (vert foncé) à E (orange foncé)",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Le Nutri-Score est un logo affiché sur l'emballage des produits alimentaires. Il indique la qualité nutritionnelle d'un produit à l'aide d'une échelle de 5 lettres, de A à E, associées à 5 couleurs. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.6293,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": true,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.6293,
+          "fichier": "data/raw/docx/note_nutriscore.docx",
+          "position": "section : Qu'est-ce que le Nutri-Score ?"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.583,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 44"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.5788,
+          "fichier": "data/raw/docx/note_nutriscore.docx",
+          "position": "section : Le Nutri-Score expliqué simplement"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.5786,
+          "fichier": "data/raw/pdf/mars2025RU-FR-vf.pdf",
+          "position": "page 4"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.5763,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 5"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.05,
+        "generation": 2.23
+      }
+    },
+    {
+      "numero": "3",
+      "question": "Depuis quand le Nutri-Score est-il recommandé en France ?",
+      "attendue": "Depuis le 31 octobre 2017 (arrêté interministériel)",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Depuis le 31 octobre 2017, un arrêté interministériel recommande l'utilisation du logo Nutri-Score en France. Son affichage repose sur le volontariat des entreprises : il n'est pas obligatoire. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.8011,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": true,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.8011,
+          "fichier": "data/raw/docx/note_nutriscore.docx",
+          "position": "section : Depuis quand existe-t-il en France ?"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.7451,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 44"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.745,
+          "fichier": "data/raw/pdf/mars2025RU-FR-vf.pdf",
+          "position": "page 1"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.7432,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 39"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.7333,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 44"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.15
+      }
+    },
+    {
+      "numero": "4",
+      "question": "Quelle quantité maximale de sel par jour est recommandée pour un adulte ?",
+      "attendue": "5 g de sel par jour (soit 2,4 g de sodium)",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Consommation trop importante de sel dépassent la limite recommandée par l’Organisation mondiale de la santé de 5 g de sel par jour2, 3. Les apports moyens en acides gras oméga 3 (ALA, DHA, et EPA) des adultes sont environ deux fois trop faibles4. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.7435,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": false,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.7435,
+          "fichier": "data/raw/pdf/244900_spf00001365.pdf",
+          "position": "page 1"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.7054,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 177"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.6749,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 36"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.6682,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 51"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.645,
+          "fichier": "data/raw/docx/note_groupes_aliments.docx",
+          "position": "section : Les produits sucrés, salés et l'eau"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.23
+      }
+    },
+    {
+      "numero": "5",
+      "question": "Combien de minutes d'activité physique par jour sont recommandées pour un adulte ?",
+      "attendue": "Au moins 30 minutes d'activité physique dynamique par jour",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Pour la fréquence, une formulation par jour et l’autre par semaine ont été proposées (30 min/jour ; 2h30/semaine) ; les types d’activités physiques ont » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.8616,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": true,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.8616,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 25"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.8356,
+          "fichier": "data/raw/html/Augmenter l'activité physique _ Manger Bouger.html",
+          "position": "section : La recommandation"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.8287,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 59"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.8143,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 23"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.8115,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 13"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.15
+      }
+    },
+    {
+      "numero": "6",
+      "question": "Combien de fois par semaine faut-il manger du poisson ?",
+      "attendue": "2 fois par semaine, dont 1 poisson gras",
+      "fichier": "",
+      "position": "",
+      "reponse": "« 2 fois par semaine, dont un poisson gras (sardines, maquereau, hareng, saumon). Une portion de poisson équivaut à 100g, un petit pavé de saumon ou une boite de sardine. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.7832,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": true,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.7832,
+          "fichier": "data/raw/html/Aller vers les poissons gras et maigres en alternance _ Manger Bouger.html",
+          "position": "section : La recommandation"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.6723,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 78"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.6601,
+          "fichier": "data/raw/pdf/174000565.pdf",
+          "position": "page 410"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.6513,
+          "fichier": "data/raw/docx/note_alimentation_selon_age.docx",
+          "position": "section : Les adultes"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.05,
+        "generation": 2.16
+      }
+    },
+    {
+      "numero": "7",
+      "question": "À quelle fréquence faut-il manger des légumineuses (lentilles, pois chiches…) ?",
+      "attendue": "Au moins 2 fois par semaine",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Cuisson : 1 heure environ. 500 g de veau à blanquette, 2 c à soupe d’huile, 4 carottes, 1 bouquet garni, 2 c à café de farine, 1 jaune d’œuf, 4 c à café de crème fraîche épaisse, sel, poivre Faire revenir les morceaux de veau avec l’huile dans une cocotte. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.6293,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": true,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.6293,
+          "fichier": "data/raw/pdf/spf00001656.pdf",
+          "position": "page 58"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.6274,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 167"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.6256,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 167"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.6095,
+          "fichier": "data/raw/pdf/spf00001656.pdf",
+          "position": "page 37"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.609,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 167"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.05,
+        "generation": 2.37
+      }
+    },
+    {
+      "numero": "8",
+      "question": "Quelle est la limite recommandée pour la viande hors volaille par semaine ?",
+      "attendue": "500 g par semaine (environ 3 ou 4 steaks)",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Privilégier la volaille, et limiter les autres viandes (porc, bœuf, veau, mou ton, agneau, abats) à 500 g par semaine. • 500 g de viande hors volaille par semaine, cela correspond à environ 3 ou 4 steaks. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.7984,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": true,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.7984,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 36"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.7569,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 50"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.6986,
+          "fichier": "data/raw/docx/note_groupes_aliments.docx",
+          "position": "section : Tableau récapitulatif"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.6975,
+          "fichier": "data/raw/docx/note_idees_recues.docx",
+          "position": "section : « Il faut manger de la viande tous les jours pour avoir des protéines »"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.69,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 32"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.24
+      }
+    },
+    {
+      "numero": "9",
+      "question": "Quelle part des adultes français est en surpoids ou obèse ?",
+      "attendue": "Étude ESTEBAN 2015 : 54 % des hommes et 44 % des femmes en surpoids (obésité incluse) ; 17 % des adultes obèses",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Chez l’enfant de 2 à 17 ans, la maigreur, le surpoids et l’obésité ont été estimés en fonction de la définition internationale établie par le Childhood Obesity Working Group de l’International Obesity Task Force (IOTF) (Cole et Lobstein 2012). Les valeurs seuils de l’IMC définissant la maigreur, le surpoids et l’obésité sont spécifiques à l’âge et au sexe des enfants. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.7779,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": false,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.7779,
+          "fichier": "data/raw/pdf/174000565.pdf",
+          "position": "page 423"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.7758,
+          "fichier": "data/raw/docx/note_chronologie.docx",
+          "position": "section : Les grandes dates"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.7704,
+          "fichier": "data/raw/pdf/174000565.pdf",
+          "position": "page 425"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.7645,
+          "fichier": "data/raw/pdf/174000565.pdf",
+          "position": "page 432"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.7635,
+          "fichier": "data/raw/pdf/174000565.pdf",
+          "position": "page 430"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.05,
+        "generation": 2.25
+      }
+    },
+    {
+      "numero": "10",
+      "question": "Quelle est la seule boisson indispensable selon les recommandations ?",
+      "attendue": "L'eau",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Pour réduire les risques, il est recommandé de limiter sa consommation à deux verres par jour maximum et de ne pas consommer d’alcool tous l es jours : maximum 2 verres par jour et pas tous les jours Les risques liés à la consommation d’alcool pour la santé au cours de la vie augmentent avec la quantité consommée. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.7301,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": null,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.7301,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 35"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.7245,
+          "fichier": "data/raw/pdf/244900_spf00001365.pdf",
+          "position": "page 3"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.7223,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 35"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.7134,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 51"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.6976,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 35"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.05,
+        "generation": 2.22
+      }
+    },
+    {
+      "numero": "11",
+      "question": "Quelle quantité maximale de charcuterie est recommandée par semaine ?",
+      "attendue": "150 g par semaine",
+      "fichier": "",
+      "position": "",
+      "reponse": "« La nécessité de faire un calcul mental pour comprendre la recommandation a été également plus élevée pour la formulation « 2h30 par semaine » en comparaison à la formulation « 30 minutes par jour ». Ces résultats suggèrent que la temporalité « 30 minutes par jour » est plus pertinente que « 2h30 par semaine ». » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.6098,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": false,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.6098,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 59"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.5782,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 23"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.5756,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 25"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.5597,
+          "fichier": "data/raw/pdf/42466_spf00000619.pdf",
+          "position": "page 36"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.31
+      }
+    },
+    {
+      "numero": "12",
+      "question": "Que signifie le sigle PNNS ?",
+      "attendue": "Programme national nutrition santé",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Le logo du PNNS a pour objectif, au travers d’une m arque (déposée à l’INPI), de donner de la cohérence aux messages en nutrition portés par dive rs supports, de valoriser les documents produits par des acteurs variés (associations, coll ectivités territoriales, organismes publics ou privés, entreprises publiques ou privées), en leur offrant la possibilité de reconnaître leur conformité au PNNS, et limiter ainsi la diffusion de messages contradictoires. » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.6498,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": null,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.6498,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 35"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.5441,
+          "fichier": "data/raw/pdf/mars2025RU-FR-vf.pdf",
+          "position": "page 4"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.5346,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 35"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.5038,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 61"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.5029,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 15"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.23
+      }
+    },
+    {
+      "numero": "13",
+      "question": "À partir de quel IMC parle-t-on d'obésité chez l'adulte ?",
+      "attendue": "IMC supérieur ou égal à 30 kg/m²",
+      "fichier": "",
+      "position": "",
+      "reponse": "« - La prévalence du surpoids et de l’obésité chez les adultes est restée stable (de l’ordre de 49%). - Chez les enfants , la prévalence du surpoids (obésité incluse) est re stée stable (18% en 2006 versus 17% en 2015 ; obésité seule passant de 3% à 4%). » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.7412,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": false,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.7412,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 13"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.7211,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 12"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.7099,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 13"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.7099,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 79"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.05,
+        "generation": 2.2
+      }
+    },
+    {
+      "numero": "14",
+      "question": "Quels sont les grands groupes d'aliments et leur rôle principal ?",
+      "attendue": "Fruits et légumes (fibres, vitamines, minéraux), féculents (énergie), légumes secs (protéines végétales, fibres), produits laitiers (calcium), viandes-poissons-œufs (protéines, fer), matières grasses (acides gras indispensables)",
+      "fichier": "note_groupes_aliments.docx",
+      "position": "section : Tableau récapitulatif",
+      "reponse": "« Synthèse des groupes et des sous -groupes constitués pour la catégorisation des aliments Groupes des repères de consommation » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.7269,
+      "source_retrouvee": true,
+      "source_citee": false,
+      "chiffres_retrouves": null,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.7269,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 168"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.6871,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 163"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.6842,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 99"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.6835,
+          "fichier": "data/raw/pdf/NUT2012SA0103Ra-1.pdf",
+          "position": "page 160"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.681,
+          "fichier": "data/raw/docx/note_groupes_aliments.docx",
+          "position": "section : Pourquoi classer les aliments en groupes ?"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.05,
+        "generation": 2.21
+      }
+    },
+    {
+      "numero": "15",
+      "question": "Qu'est-ce qu'un produit ultra-transformé ?",
+      "attendue": "À recopier depuis l'article téléchargé",
+      "fichier": "",
+      "position": "",
+      "reponse": "« Les produits non transformés qui comprennent un seul ingrédient ou une seule catégorie d’ingrédients (par exemple fruits ou légumes frais, viandes crues découpées, miel…) Les produits transformés ayant, pour toute transformation, été soumis à une maturation, et qui comprennent un seul ingrédient ou une seule catégorie d’ingrédients NB : le produit visé est essentiellement la viande » [1]",
+      "mode": "extractif",
+      "a_repondu": true,
+      "meilleur_score": 0.6628,
+      "source_retrouvee": null,
+      "source_citee": null,
+      "chiffres_retrouves": null,
+      "sources": [
+        {
+          "numero": 1,
+          "citee": true,
+          "score": 0.6628,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 9"
+        },
+        {
+          "numero": 2,
+          "citee": false,
+          "score": 0.5242,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 78"
+        },
+        {
+          "numero": 3,
+          "citee": false,
+          "score": 0.4847,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 40"
+        },
+        {
+          "numero": 4,
+          "citee": false,
+          "score": 0.4782,
+          "fichier": "data/raw/pdf/FAQ-updatedAlgo-FR_V11.pdf",
+          "position": "page 22"
+        },
+        {
+          "numero": 5,
+          "citee": false,
+          "score": 0.4537,
+          "fichier": "data/raw/pdf/PNNS_4_2019-2023_cle4792b7.pdf",
+          "position": "page 22"
+        }
+      ],
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.18
+      }
+    }
+  ],
+  "pieges": [
+    {
+      "question": "Quelle est la recette de la blanquette de veau ?",
+      "attendu": "L'application indique que l'information n'est pas dans le corpus",
+      "reponse": "« Mélanger avec une spatule en bois pour obtenir un mélange riche et homogène. Le mélanger au roux à l’aide d’un fouet. » [1]",
+      "mode": "extractif",
+      "evite": false,
+      "llm_appele": false,
+      "meilleur_score": 0.6224,
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.22
+      }
+    },
+    {
+      "question": "Quel est le meilleur régime pour perdre 10 kg en un mois ?",
+      "attendu": "L'application indique que l'information n'est pas dans le corpus (hors périmètre : régimes « miracles »)",
+      "reponse": "« Lisez aussi Surveillez le poids, indice de santé majeur, page 10 Alertez le médecin si le poids a varié de 2 kg ou plus dans le mois. k si la personne que vous aidez mange moins depuis plus de trois jours ; » [1]",
+      "mode": "extractif",
+      "evite": false,
+      "llm_appele": false,
+      "meilleur_score": 0.6052,
+      "durees_s": {
+        "recherche": 0.04,
+        "generation": 2.35
+      }
+    }
+  ]
+}
