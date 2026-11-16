@@ -432,7 +432,7 @@ différentes avec le vrai modèle et le corpus complet.*
 
 ## Étape 8 — Validation finale
 
-Une fois le corpus indexé et Ollama lancé :
+Une fois le corpus indexé (Ollama facultatif : sans lui, les réponses sont extraites du corpus) :
 
 ```bash
 python -m src.validation              # mêmes options que src.rag : -k, --seuil, --llm

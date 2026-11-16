@@ -67,3 +67,19 @@ def test_valider_et_rapport(tmp_path):
     assert "| Questions pièges : « je ne sais pas » | 1 / 1 |" in md
     assert "✅ piège évité" in md and "reperes.pdf — page 1" in md
     assert md.count("⬜") == 2                                   # une case « Correcte » par question
+
+
+def test_validation_sans_ollama(tmp_path):
+    """Ollama arrêté : la validation tourne quand même, en mode extractif, et liste les sources."""
+    from tests.test_rag import LLMEnPanne
+
+    (tmp_path / "q.md").write_text(JEU, encoding="utf-8")
+    questions, pieges = lire_jeu(tmp_path / "q.md")
+    resultats = valider(questions, pieges, _base(tmp_path), EncodeurFactice(), LLMEnPanne(), k=3, seuil=0.2)
+    poisson = resultats["questions"][0]
+    assert poisson["mode"] == "extractif" and poisson["a_repondu"] and poisson["source_citee"]
+    assert resultats["pieges"][0]["evite"]
+    md = rapport_markdown(resultats)
+    assert "Mode **extractif**" in md and "## Sources retrouvées pour chaque question" in md
+    assert "- **1.** [1] reperes.pdf — page 1" in md
+

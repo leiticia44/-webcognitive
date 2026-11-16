@@ -16,7 +16,7 @@ Pour les pièges : le système doit répondre qu'il ne sait pas.
 La justesse du contenu reste à juger par une personne : le rapport met la réponse
 attendue et la réponse obtenue côte à côte, avec une case à cocher.
 
-Usage (base indexée et Ollama lancé) :
+Usage (base indexée ; sans Ollama, les réponses sont extraites du corpus) :
     python -m src.validation
     python -m src.validation -k 5 --seuil 0.30 --llm mistral
 """
@@ -72,13 +72,14 @@ def valider(questions: list[dict], pieges: list[dict], base, encodeur, llm,
     for rang, q in enumerate(questions, start=1):
         if progression:
             progression(rang, total, q["question"])
-        r = repondre(q["question"], base, encodeur, llm, k, seuil)
+        r = repondre(q["question"], base, encodeur, llm, k, seuil, secours_extractif=True)
         fichiers = [_nom(s.get("fichier")) for s in r["sources"]]
         cites = [_nom(s.get("fichier")) for s in r["sources"] if s["citee"]]
         attendu = _nom(q["fichier"]) if q["fichier"] else None
         lignes.append({
             **q,
             "reponse": r["reponse"],
+            "mode": r.get("mode", "generatif"),
             "a_repondu": not r["hors_corpus"],
             "meilleur_score": r["meilleur_score"],
             "source_retrouvee": (attendu in fichiers) if attendu else None,
@@ -91,8 +92,9 @@ def valider(questions: list[dict], pieges: list[dict], base, encodeur, llm,
     for rang, p in enumerate(pieges, start=len(questions) + 1):
         if progression:
             progression(rang, total, p["question"])
-        r = repondre(p["question"], base, encodeur, llm, k, seuil)
-        lignes_pieges.append({**p, "reponse": r["reponse"], "evite": r["hors_corpus"],
+        r = repondre(p["question"], base, encodeur, llm, k, seuil, secours_extractif=True)
+        lignes_pieges.append({**p, "reponse": r["reponse"], "mode": r.get("mode", "generatif"),
+                              "evite": r["hors_corpus"],
                               "llm_appele": r["llm_appele"], "meilleur_score": r["meilleur_score"],
                               "durees_s": r["durees_s"]})
 
@@ -155,6 +157,8 @@ def rapport_markdown(resultats: dict) -> str:
         f"| Questions pièges : « je ne sais pas » | {r['pieges_evites']} / {r['pieges']} |",
         f"| Temps moyen de génération | {str(r['generation_moyenne_s']).replace('.', ',')} s |",
         "",
+        ("Mode **extractif** : le modèle de langage (Ollama) n'était pas disponible, les réponses sont "
+         "recopiées du meilleur passage.\n\n" if any(l.get("mode") == "extractif" for l in resultats["questions"]) else "") +
         "Les contrôles de source ne portent que sur les questions dont la colonne « Fichier source » "
         "est remplie dans `docs/questions_validation.md`. La dernière colonne « Correcte » est à "
         "cocher à la main après relecture.",
@@ -174,13 +178,16 @@ def rapport_markdown(resultats: dict) -> str:
     for p in resultats["pieges"]:
         lignes.append(f"| {_cellule(p['question'])} | {_cellule(p['reponse'])} | {'oui' if p['llm_appele'] else 'non'} | "
                       f"{p['meilleur_score']:.2f} | {'✅ piège évité' if p['evite'] else '❌ le système a répondu'} |")
-    lignes += ["", "## Sources utilisées", ""]
+    lignes += ["", "## Sources retrouvées pour chaque question", "",
+               "Les 3 passages les plus proches (fichier — page ou section — score). "
+               "Ils servent à remplir les colonnes « Fichier source » et « Page / section » "
+               "de `docs/questions_validation.md`.", ""]
     for l in resultats["questions"]:
-        cites = [s for s in l["sources"] if s["citee"]] or l["sources"][:1]
-        if not cites:
+        if not l["sources"]:
+            lignes.append(f"- **{l['numero']}.** aucun passage au-dessus du seuil")
             continue
         details = " ; ".join(f"[{s['numero']}] {Path(s['fichier'] or '').name} — {s['position'] or '?'} ({s['score']:.2f})"
-                             for s in cites)
+                             for s in l["sources"][:3])
         lignes.append(f"- **{l['numero']}.** {details}")
     return "\n".join(lignes) + "\n"
 
@@ -219,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         resultats = valider(questions, pieges, base, encodeur, ClientOllama(args.llm),
                             args.k, args.seuil, progression)
-    except OllamaIndisponible as erreur:
+    except OllamaIndisponible as erreur:  # ne devrait plus arriver : mode extractif en secours
         print(f"\n✘ {erreur}\n")
         return 1
 
