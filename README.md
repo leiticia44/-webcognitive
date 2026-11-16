@@ -9,14 +9,40 @@ capable de répondre à des questions sur un corpus de documents consacré à
 
 | Étape | Contenu | État |
 |---|---|---|
-| 1 | Cadrage, corpus et stratégie d'ingestion | 🟡 corpus à télécharger |
-| 2 | Pipeline d'ingestion et de parsing | ✅ code et tests |
-| 3 | Chunking et embeddings | ✅ code et tests |
-| 4 | Base vectorielle et API FastAPI | ✅ code et tests |
-| 5 | RAG avec LLM local (Ollama) | ✅ code et tests |
+| 1 | Cadrage, corpus et stratégie d'ingestion | ✅ 27 documents en 4 formats (objectif 35) |
+| 2 | Pipeline d'ingestion et de parsing | ✅ 27/27 documents lus, 542 376 mots |
+| 3 | Chunking et embeddings | ✅ 9 690 segments vectorisés (384 dimensions) |
+| 4 | Base vectorielle et API FastAPI | ✅ indexation complète en 15 min |
+| 5 | RAG avec LLM local (Ollama) | ✅ mode extractif ; Mistral non installé |
 | 6 | Front-end web | ✅ interface de chat |
 | 7 | Dataviz | ✅ tableau de bord du corpus |
-| 8 | Validation finale et soutenance | 🟡 script de validation prêt, à lancer sur le corpus complet |
+| 8 | Validation finale et soutenance | 🟡 premier passage : 7/15 (voir plus bas) |
+
+## Résultats sur le corpus réel
+
+Mesurés sur l'ordinateur de développement (Windows 10, processeur seul, sans carte graphique).
+
+| Mesure | Valeur |
+|---|---|
+| Documents | 27 : 11 PDF, 5 pages HTML, 6 notes DOCX, 5 TXT |
+| Texte extrait | 542 376 mots (deux rapports de l'Anses et de Santé publique France en font 70 %) |
+| Segments indexés | 9 690 (500 caractères, chevauchement de 100) |
+| Durée de l'indexation | environ 15 min (303 lots de 32 segments) |
+| Temps de réponse (mode extractif) | environ 2 s par question |
+| Validation, premier passage | **7 / 15** bonnes réponses avec la bonne source, pièges évités 0 / 2 |
+
+Analyse du premier passage de validation (détail dans `docs/questions_validation.md`) :
+- les réponses sont trouvées quand la question reprend les mots du document
+  (fruits et légumes, Nutri-Score, poisson, viande, activité physique) ;
+- elles sont manquées quand la question emploie un autre mot que le document
+  (« légumineuses » contre « légumes secs ») ou quand la réponse est noyée dans un très long rapport ;
+- avec ce modèle d'embedding, les scores des questions hors sujet (0,61-0,62) sont proches de ceux
+  des bonnes réponses (0,63-0,86) : le seuil de pertinence seul ne suffit pas à écarter les questions
+  hors corpus. En mode génératif, le prompt strict du LLM sert de second garde-fou ;
+- le corpus contient une recette de blanquette de veau : la question piège correspondante a été remplacée.
+
+Pistes d'amélioration : recherche hybride (mots-clés BM25 et vecteurs), seuil calibré sur un plus grand
+nombre de questions, installation de Mistral pour comparer les modes extractif et génératif.
 
 ## Arborescence
 
@@ -52,6 +78,7 @@ webcognitive/
 │   ├── llm.py               ← client du LLM local (Ollama)
 │   ├── rag.py               ← recherche sémantique + pipeline RAG (étape 5)
 │   ├── dataviz.py           ← statistiques du tableau de bord (étape 7)
+│   ├── metadonnees.py       ← création des fiches manquantes de corpus_metadata.json
 │   └── validation.py        ← rapport de validation final (étape 8)
 ├── tests/
 │   ├── test_ingestion.py
@@ -94,6 +121,7 @@ de l'étape 3 (environ 470 Mo pour le modèle multilingue), puis tout s'exécute
 - minuscules, sans accents ni espaces : `pnns_recommandations_2019.pdf`
 - forme conseillée : `source_sujet_annee.extension`
 - chaque fichier ajouté dans `data/raw/` doit avoir son entrée dans `corpus_metadata.json`
+  (`python -m src.metadonnees --ecrire` crée les fiches manquantes à partir des titres détectés à l'ingestion)
 
 ## Étape 2 — Lancer l'ingestion
 
