@@ -1,496 +1,275 @@
 # WebCognitive Engine — Alimentation & Nutrition
 
-Projet individuel du cours **Techniques Informatiques et Web**.
-Objectif final : un moteur de recherche sémantique et un assistant (RAG, 100 % local)
-capable de répondre à des questions sur un corpus de documents consacré à
-**l'alimentation et la nutrition**.
+Moteur de recherche sémantique et assistant de type **RAG** (*Retrieval-Augmented Generation*),
+**100 % local**, qui répond en langage naturel à des questions sur l'alimentation et la nutrition
+en citant ses sources : fichier, page ou section.
 
-## Avancement
+Projet individuel du cours **Techniques Informatiques et Web** — Master 2 Technologies de
+l'Hypermédia (THYP), Université Paris 8 — Leiticia Atmane, 2026.
 
-| Étape | Contenu | État |
-|---|---|---|
-| 1 | Cadrage, corpus et stratégie d'ingestion | ✅ 27 documents en 4 formats (objectif 35) |
-| 2 | Pipeline d'ingestion et de parsing | ✅ 27/27 documents lus, 542 376 mots |
-| 3 | Chunking et embeddings | ✅ 9 690 segments vectorisés (384 dimensions) |
-| 4 | Base vectorielle et API FastAPI | ✅ indexation complète en 15 min |
-| 5 | RAG avec LLM local (Ollama) | ✅ mode extractif ; Mistral non installé |
-| 6 | Front-end web | ✅ interface de chat |
-| 7 | Dataviz | ✅ tableau de bord du corpus |
-| 8 | Validation finale et soutenance | 🟡 premier passage : 7/15 (voir plus bas) |
+![Une réponse et ses sources](docs/captures/etape6_reponse_sources.png)
 
-## Résultats sur le corpus réel
+## Sommaire
 
-Mesurés sur l'ordinateur de développement (Windows 10, processeur seul, sans carte graphique).
+1. [Le projet](#le-projet)
+2. [Le corpus](#le-corpus)
+3. [Architecture](#architecture)
+4. [Installation pas à pas](#installation-pas-à-pas)
+5. [Utilisation](#utilisation)
+6. [Résultats](#résultats)
+7. [Tests et validation](#tests-et-validation)
+8. [Structure du dépôt](#structure-du-dépôt)
+9. [Limites et perspectives](#limites-et-perspectives)
+10. [Documentation](#documentation)
 
-| Mesure | Valeur |
+## Le projet
+
+On pose une question en français, par exemple « Combien de fois par semaine faut-il manger du poisson ? »,
+et l'application :
+1. retrouve dans le corpus les passages dont le **sens** est le plus proche de la question ;
+2. répond **uniquement à partir de ces passages** et affiche la source de chacun ;
+3. dit qu'elle ne sait pas quand la réponse n'est pas dans le corpus.
+
+Tout s'exécute sur l'ordinateur, avec des logiciels libres : aucune donnée n'est envoyée en ligne
+et aucun service payant n'est utilisé.
+
+| Fonctionnalité | Technologie |
 |---|---|
-| Documents | 27 : 11 PDF, 5 pages HTML, 6 notes DOCX, 5 TXT |
-| Texte extrait | 542 376 mots (deux rapports de l'Anses et de Santé publique France en font 70 %) |
-| Segments indexés | 9 690 (500 caractères, chevauchement de 100) |
-| Durée de l'indexation | environ 15 min (303 lots de 32 segments) |
-| Temps de réponse (mode extractif) | environ 2 s par question |
-| Validation, premier passage | **7 / 15** bonnes réponses avec la bonne source, pièges évités 0 / 2 |
+| Lecture des PDF, pages web, documents Word et fichiers texte | pypdf, BeautifulSoup, python-docx, charset-normalizer |
+| Découpage du texte et vecteurs sémantiques (384 dimensions) | sentence-transformers (`paraphrase-multilingual-MiniLM-L12-v2`) |
+| Base vectorielle locale | ChromaDB |
+| API REST et documentation interactive | FastAPI, Uvicorn |
+| Rédaction des réponses par un LLM local | Ollama + Mistral (facultatif : sinon, mode extractif) |
+| Interface de questions et tableau de bord | HTML, CSS et JavaScript, sans framework |
+| Tests | pytest (70 tests) |
 
-Analyse du premier passage de validation (détail dans `docs/questions_validation.md`) :
-- les réponses sont trouvées quand la question reprend les mots du document
-  (fruits et légumes, Nutri-Score, poisson, viande, activité physique) ;
-- elles sont manquées quand la question emploie un autre mot que le document
-  (« légumineuses » contre « légumes secs ») ou quand la réponse est noyée dans un très long rapport ;
-- avec ce modèle d'embedding, les scores des questions hors sujet (0,61-0,62) sont proches de ceux
-  des bonnes réponses (0,63-0,86) : le seuil de pertinence seul ne suffit pas à écarter les questions
-  hors corpus. En mode génératif, le prompt strict du LLM sert de second garde-fou ;
-- le corpus contient une recette de blanquette de veau : la question piège correspondante a été remplacée.
+## Le corpus
 
-Pistes d'amélioration : recherche hybride (mots-clés BM25 et vecteurs), seuil calibré sur un plus grand
-nombre de questions, installation de Mistral pour comparer les modes extractif et génératif.
+**Thème : l'alimentation et la nutrition** — recommandations officielles (PNNS), repères de consommation,
+Nutri-Score, publics spécifiques (enfants, femmes enceintes, personnes âgées), activité physique,
+surpoids et obésité. Hors périmètre : recettes, régimes « miracles », conseils médicaux individuels
+(voir le [cahier des charges](docs/cahier_des_charges.md)).
 
-## Arborescence
+| Format | Documents | Sources |
+|---|---|---|
+| PDF | 11 | Santé publique France, Anses, ministère de la Santé (PNNS 4), Nutri-Score |
+| HTML | 5 | fiches « Manger Bouger » de Santé publique France |
+| DOCX | 6 | notes de synthèse rédigées pour le projet |
+| TXT | 5 | articles de référence (fibres, sucres, aliments ultra-transformés) |
+| **Total** | **27** | **542 376 mots** |
 
-```
-webcognitive/
-├── data/
-│   ├── raw/                 ← documents bruts, NON modifiés
-│   │   ├── pdf/
-│   │   ├── html/
-│   │   ├── docx/
-│   │   └── txt/
-│   ├── processed/           ← texte nettoyé (JSON), généré à l'étape 2
-│   ├── vectors/             ← segments et vecteurs, générés à l'étape 3
-│   └── chroma/              ← base vectorielle ChromaDB (étape 4)
-├── frontend/                ← interface web (HTML, CSS, JavaScript)
-│   ├── index.html           ← assistant de chat (étape 6)
-│   ├── style.css
-│   ├── app.js
-│   ├── dataviz.html         ← tableau de bord du corpus (étape 7)
-│   ├── dataviz.css
-│   └── dataviz.js
-├── src/
-│   ├── parsers.py           ← lecture PDF / HTML / DOCX / TXT
-│   ├── cleaning.py          ← nettoyage et normalisation du texte
-│   ├── ingest.py            ← pipeline d'ingestion + rapport (étape 2)
-│   ├── chunking.py          ← découpage en segments avec chevauchement
-│   ├── embeddings.py        ← modèle d'embedding local, similarité cosinus
-│   ├── vectorize.py         ← découpage + vectorisation du corpus (étape 3)
-│   ├── evaluate.py          ← test et optimisation avec les questions de validation
-│   ├── vectorstore.py       ← base vectorielle ChromaDB (étape 4)
-│   ├── indexation.py        ← pipeline d'indexation complet
-│   ├── api.py               ← API REST FastAPI
-│   ├── llm.py               ← client du LLM local (Ollama)
-│   ├── rag.py               ← recherche sémantique + pipeline RAG (étape 5)
-│   ├── dataviz.py           ← statistiques du tableau de bord (étape 7)
-│   ├── metadonnees.py       ← création des fiches manquantes de corpus_metadata.json
-│   └── validation.py        ← rapport de validation final (étape 8)
-├── tests/
-│   ├── test_ingestion.py
-│   ├── test_vectorisation.py
-│   ├── test_indexation.py
-│   ├── test_rag.py
-│   ├── test_interface.py
-│   ├── test_dataviz.py
-│   └── test_validation.py
-├── docs/
-│   ├── cahier_des_charges.md
-│   ├── sources.md           ← où trouver les documents
-│   ├── questions_validation.md
-│   └── rapport_validation.md ← généré à l'étape 8
-├── corpus_metadata.json     ← fiche descriptive de chaque document
-├── requirements.txt
-└── .gitignore
+Chaque document est décrit dans [`corpus_metadata.json`](corpus_metadata.json) (titre, auteur, source, sous-thème),
+et les liens de téléchargement sont dans [`docs/sources.md`](docs/sources.md).
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Préparation["Préparation du corpus (une fois)"]
+        A[data/raw<br/>PDF, HTML, DOCX, TXT] --> B[Ingestion<br/>lecture + nettoyage]
+        B --> C[Découpage<br/>segments de 500 car.]
+        C --> D[Vectorisation<br/>sentence-transformers]
+        D --> E[(ChromaDB)]
+    end
+    subgraph Question["À chaque question"]
+        F[Interface web] -->|POST /chat| G[API FastAPI]
+        G --> H[Recherche<br/>Top-5 cosinus]
+        H --> E
+        H --> I{Score ≥ seuil ?}
+        I -->|non| J[« Je ne sais pas »]
+        I -->|oui| K[Mistral via Ollama<br/>ou mode extractif]
+        K -->|réponse + sources| F
+    end
 ```
 
-## Installation de l'environnement
+| Module | Rôle |
+|---|---|
+| `src/parsers.py`, `src/cleaning.py`, `src/ingest.py` | lire les 4 formats, nettoyer le texte, garder la page ou la section de chaque bloc |
+| `src/chunking.py`, `src/embeddings.py`, `src/vectorize.py` | découper en segments avec chevauchement, calculer les vecteurs |
+| `src/vectorstore.py`, `src/indexation.py` | enregistrer segments, vecteurs et métadonnées dans ChromaDB |
+| `src/rag.py`, `src/llm.py` | recherche sémantique, prompt strict, appel au LLM local, mode extractif |
+| `src/api.py` | API REST et service des pages web |
+| `frontend/` | interface de questions (`index.html`) et tableau de bord (`dataviz.html`) |
+| `src/dataviz.py` | statistiques du tableau de bord (ACP, TF-IDF, similarités) |
+| `src/evaluate.py`, `src/validation.py` | évaluation des réglages et rapport de validation |
+
+Le détail de chaque brique est dans la [spécification technique](docs/specification_technique.md).
+
+## Installation pas à pas
+
+Prérequis : **Python 3.10 ou plus**, **Git**, environ **3 Go d'espace disque** (7 Go avec Mistral).
+
+### 1. Récupérer le projet
 
 ```bash
+git clone https://github.com/leiticia44/-webcognitive.git
+cd -webcognitive
+```
+
+### 2. Créer l'environnement virtuel et installer les dépendances
+
+**Windows** (Invite de commandes) :
+```bat
 python -m venv venv
-# Linux / macOS
+venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+**Linux / macOS** :
+```bash
+python3 -m venv venv
 source venv/bin/activate
-# Windows
-venv\Scripts\activate
-
-# Facultatif mais conseillé : PyTorch en version CPU (beaucoup plus léger)
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-
 pip install -r requirements.txt
 ```
 
-Le modèle d'embedding est téléchargé automatiquement au premier lancement
-de l'étape 3 (environ 470 Mo pour le modèle multilingue), puis tout s'exécute en local.
+Facultatif, pour une installation plus légère : installer d'abord PyTorch en version processeur,
+`pip install torch --index-url https://download.pytorch.org/whl/cpu`.
 
-## Règles de nommage des fichiers du corpus
+> Sous Windows, si `python` n'est pas reconnu, utiliser le chemin complet de Python ; si PowerShell
+> bloque les scripts, utiliser l'Invite de commandes. Dans la suite, remplacer `python` par
+> `venv\Scripts\python.exe` si l'environnement n'est pas activé.
 
-- minuscules, sans accents ni espaces : `pnns_recommandations_2019.pdf`
-- forme conseillée : `source_sujet_annee.extension`
-- chaque fichier ajouté dans `data/raw/` doit avoir son entrée dans `corpus_metadata.json`
-  (`python -m src.metadonnees --ecrire` crée les fiches manquantes à partir des titres détectés à l'ingestion)
+### 3. Installer le modèle de langage (facultatif)
 
-## Étape 2 — Lancer l'ingestion
-
-```bash
-python -m src.ingest                                # traite tout data/raw/
-python -m src.ingest --fichier data/raw/pdf/x.pdf   # teste un seul fichier
-python -m pytest -v                                 # lance les tests
-```
-
-Pour chaque document, le pipeline :
-1. **lit** le fichier selon son format (pages du PDF, sections `<h1>`–`<h4>` du HTML,
-   titres Word du DOCX, titres `#` ou en MAJUSCULES du TXT) ;
-2. **nettoie** le texte : Unicode normalisé, ligatures (`ﬁ` → `fi`), espaces insécables,
-   césures de fin de ligne, en-têtes / pieds de page et numéros de page des PDF,
-   menus / pieds de page / scripts des pages HTML ;
-3. **écrit** `data/processed/<id>.json` : texte découpé en **blocs**, chacun avec sa
-   position (`page 3`, `section : Le sel`) pour pouvoir citer la source plus tard.
-
-Le fichier `data/processed/rapport_ingestion.json` fait le bilan et signale :
-PDF probablement scannés, fichiers sans fiche dans `corpus_metadata.json`,
-fiches dont le fichier est introuvable, `nombre_documents` incohérent, encodage non UTF-8.
-
-Exemple de sortie :
-
-```json
-{
-  "id": "doc_001",
-  "fichier": "data/raw/html/sante_fr_sel.html",
-  "format": "html",
-  "titre": "Limiter les produits salés et le sel",
-  "metadonnees": { "...": "entrée de corpus_metadata.json" },
-  "statistiques": { "nombre_blocs": 4, "nombre_pages": null, "nombre_caracteres": 3120, "nombre_mots": 512 },
-  "avertissements": [],
-  "blocs": [
-    { "numero": 1, "position": "section : Le sel", "page": null, "section": "Le sel", "texte": "..." }
-  ]
-}
-```
-
-## Étape 3 — Découpage et vectorisation
-
-```bash
-python -m src.vectorize                     # segments de 500 caractères, chevauchement 100
-python -m src.vectorize --sans-vecteurs     # découpage seul, pour vérifier les tailles
-python -m src.evaluate --details            # tester plusieurs tailles avec les questions de validation
-python -m src.evaluate --modeles multilingue,minilm   # comparer les deux modèles
-```
-
-**1. Découpage (chunking).** Chaque bloc de l'étape 2 est découpé en phrases,
-puis les phrases sont regroupées jusqu'à environ 500 caractères. Le segment suivant
-reprend les dernières phrases du précédent (chevauchement d'environ 100 caractères) :
-une idée n'est jamais coupée entre deux segments. Règles :
-- on ne coupe jamais au milieu d'une phrase (les abréviations « p. 12 », « env. 5 »,
-  « M. Dupont » ne sont pas prises pour des fins de phrase) ; seule une phrase plus longue
-  que la taille maximale est coupée, sur les espaces ;
-- un segment ne déborde jamais de son bloc : il garde sa page ou sa section d'origine ;
-- un dernier segment trop petit (moins d'un quart de la taille) est fusionné avec le précédent ;
-- le texte vectorisé commence par le titre du document et la section
-  (« Le sel — Où se cache le sel ? : … ») pour donner du contexte aux petits segments.
-
-**2. Vectorisation.** Chaque segment devient un vecteur de 384 nombres grâce à
-sentence-transformers, exécuté en local sur le processeur. Les vecteurs sont normalisés :
-la similarité cosinus entre une question et un segment est alors un simple produit scalaire.
-
-| Modèle | Option | Pourquoi |
-|---|---|---|
-| paraphrase-multilingual-MiniLM-L12-v2 | `multilingue` (par défaut) | entraîné sur plus de 50 langues dont le français ; 384 dimensions |
-| all-MiniLM-L6-v2 | `minilm` | modèle cité dans la fiche ; plus rapide, mais entraîné surtout sur de l'anglais |
-
-Le corpus étant en français, le modèle multilingue est utilisé par défaut ;
-`python -m src.evaluate --modeles multilingue,minilm` permet de vérifier ce choix sur nos questions.
-
-**3. Sorties** (`data/vectors/`) :
-- `segments.jsonl` : un segment par ligne, avec son document, sa page ou section
-  et ses positions de début et de fin dans le bloc ;
-- `embeddings.npy` : la matrice des vecteurs (une ligne par segment, dans le même ordre) ;
-- `index.json` : modèle, taille, chevauchement, durée et statistiques.
-
-**4. Test et optimisation.** `python -m src.evaluate` découpe et vectorise le corpus
-pour plusieurs tailles (250, 500, 800, 1200 caractères), pose chaque question de
-`docs/questions_validation.md` et mesure si le bon document arrive en tête :
-
-| Mesure | Signification |
-|---|---|
-| Top-1 / Top-3 / Top-5 | part des questions dont le bon document est dans les 1, 3 ou 5 premiers segments |
-| MRR | moyenne de 1 / rang du premier bon segment (1 = toujours premier) |
-| Pos. | bonne page ou section dans le top-5 |
-| Score / Piège | similarité du meilleur segment pour les vraies questions, et la plus haute obtenue par une question hors corpus |
-
-Des segments trop petits manquent de contexte ; trop grands, ils mélangent plusieurs
-sujets et le sens se dilue. La meilleure configuration est marquée ◀ et les résultats
-sont enregistrés dans `data/vectors/evaluation.json`. L'écart entre « Score » et « Piège »
-servira à fixer, à l'étape 5, le seuil sous lequel l'assistant répond que l'information
-n'est pas dans le corpus.
-
-⚠️ Seules les questions dont la colonne « Fichier source » est remplie sont évaluées.
-
-## Étape 4 — Base vectorielle et API d'indexation
-
-```bash
-uvicorn src.api:app --reload        # ou : python -m src.api
-```
-
-Puis ouvrir **http://127.0.0.1:8000/docs** : la documentation interactive Swagger,
-générée automatiquement par FastAPI, permet d'essayer chaque route depuis le navigateur.
-
-### La base vectorielle : ChromaDB
-
-ChromaDB est une base de données orientée vecteurs, libre, qui s'exécute en local
-et enregistre ses données dans `data/chroma/`. Pour chaque segment, elle stocke **de manière liée** :
-
-| Élément | Exemple |
-|---|---|
-| identifiant unique | `doc_001_s0004` |
-| vecteur | 384 nombres (modèle de l'étape 3) |
-| texte original | « Manger du poisson 2 fois par semaine, dont un poisson gras. » |
-| métadonnées | fichier source, page ou section, titre, format, auteur, URL, date, position dans le bloc |
-
-La collection utilise la distance cosinus. Ses propres métadonnées gardent les réglages
-de l'indexation (modèle, taille, chevauchement, date) : une recherche utilise toujours
-**le même modèle** que celui qui a servi à indexer, sinon les vecteurs ne seraient pas comparables.
-
-### Les routes de l'API
-
-| Méthode | Route | Rôle |
-|---|---|---|
-| GET | `/sante` | l'API répond-elle ? combien de segments en base ? |
-| **POST** | **`/index`** | **indexation complète du corpus, renvoie un rapport JSON** |
-| DELETE | `/index` | vide la base |
-| GET | `/stats` | réglages de la dernière indexation, nombre de documents par format |
-| GET | `/documents` | documents indexés et nombre de segments par document |
-| GET | `/segments/{id}` | un segment avec son texte et ses métadonnées |
-| GET | `/recherche?q=…` | vérification : les segments les plus proches d'une question |
-
-`POST /index` enchaîne tout le pipeline :
-1. ingestion de `data/raw/` (étape 2), si `"ingestion": true` ;
-2. lecture des fichiers nettoyés de `data/processed/` ;
-3. découpage avec chevauchement et vectorisation locale (étape 3) ;
-4. enregistrement **par lots de 500** dans ChromaDB, après avoir vidé la base
-   (aucun segment périmé ne reste si un document a été modifié ou retiré).
-
-Une seule indexation peut tourner à la fois (sinon : erreur 409).
-
-```bash
-curl -X POST http://127.0.0.1:8000/index -H "Content-Type: application/json" \
-     -d '{"ingestion": true, "taille": 500, "chevauchement": 100}'
-```
-
-Exemple de rapport renvoyé :
-
-```json
-{
-  "statut": "termine",
-  "ingestion": {"documents_traites": 35, "par_format": {"pdf": 12, "html": 12, "docx": 6, "txt": 5}, "erreurs": []},
-  "reglages": {"modele": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "dimensions": 384,
-               "taille": 500, "chevauchement": 100},
-  "documents": 35,
-  "segments": 1240,
-  "segments_en_base": 1240,
-  "durees_s": {"ingestion": 4.1, "lecture": 0.1, "decoupage": 0.3, "vectorisation": 38.2, "enregistrement": 1.9}
-}
-```
-*(chiffres d'illustration)*
-
-La route `/recherche` sert à vérifier l'index ; le moteur de recherche complet et la
-génération de réponse avec un LLM local viendront à l'étape 5.
-
-## Étape 5 — Recherche sémantique et RAG avec un LLM local
-
-### Installer le LLM local (une seule fois)
-
-1. Installer **Ollama** (libre, Windows / macOS / Linux) : https://ollama.com
-2. Télécharger un modèle : `ollama pull mistral` (environ 4 Go)
-   — sur un ordinateur avec peu de mémoire, `ollama pull llama3.2:3b` (environ 2 Go) puis `--llm llama3.2:3b`.
+1. Installer **Ollama** depuis https://ollama.com.
+2. Télécharger le modèle : `ollama pull mistral` (environ 4 Go).
 3. Ollama tourne ensuite en arrière-plan sur http://localhost:11434 (sinon : `ollama serve`).
 
-### Poser des questions
+Sans Ollama, l'application fonctionne en **mode extractif** : elle recopie les phrases les plus
+pertinentes du document au lieu de rédiger une réponse.
+
+### 4. Préparer le corpus
 
 ```bash
-python -m src.rag "Combien de fois par semaine faut-il manger du poisson ?"
-python -m src.rag --validation        # les 15 questions de validation + les 2 pièges
+python -m src.ingest
 ```
 
-ou depuis l'API (Swagger : http://127.0.0.1:8000/docs) avec **POST `/chat`** :
+Lit les documents de `data/raw/`, écrit le texte nettoyé dans `data/processed/` et affiche un rapport
+(environ 2 minutes pour les 27 documents).
 
-```bash
-curl -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" \
-     -d '{"question": "Combien de fois par semaine faut-il manger du poisson ?", "k": 5}'
-```
-
-### Le pipeline, étape par étape
-
-1. **Recherche sémantique (Top-K).** La question est transformée en vecteur avec le même
-   modèle que l'indexation, puis comparée à tous les segments par **similarité cosinus**.
-   On garde les K segments les plus proches (5 par défaut). La route `GET /recherche`
-   renvoie ce résultat seul, sans LLM.
-2. **Fusion des voisins.** Deux segments qui se chevauchent dans le même bloc
-   (à cause du chevauchement de l'étape 3) sont réunis en une seule source,
-   pour ne pas envoyer deux fois le même texte au LLM.
-3. **Seuil de pertinence.** Si même le meilleur segment a un score inférieur au seuil
-   (0,30 par défaut), le système répond directement « Je ne sais pas » **sans appeler le LLM** :
-   aucune invention possible. Le seuil se calibre avec la colonne « Piège » de `python -m src.evaluate`.
-4. **Prompt strict.** Les segments sont injectés, numérotés, dans le prompt :
-
-   ```
-   [système] À partir uniquement du contexte textuel fourni ci-dessous, réponds précisément
-             à la question de l'utilisateur. Si la réponse n'est pas dans le contexte, réponds
-             exactement : « Je ne sais pas : cette information n'est pas dans les documents du corpus. »
-             Cite tes sources avec leur numéro entre crochets [1]… Reprends les chiffres exactement…
-   [utilisateur] Contexte :
-             [1] Repères alimentaires — page 4 (spf_recommandations_2019.pdf)
-             Manger du poisson 2 fois par semaine, dont un poisson gras…
-             [2] …
-             Question : Combien de fois par semaine faut-il manger du poisson ?
-   ```
-   La température du modèle est basse (0,1) pour des réponses factuelles et stables.
-5. **Génération et traçabilité.** Le LLM local répond. La réponse est renvoyée avec ses sources :
-   fichier, page ou section, score, extrait, et l'indication des sources réellement citées par le LLM.
-
-Exemple de réponse de `POST /chat` :
-
-```json
-{
-  "question": "Combien de fois par semaine faut-il manger du poisson ?",
-  "reponse": "Il est recommandé de manger du poisson deux fois par semaine, dont un poisson gras [1].",
-  "hors_corpus": false,
-  "llm_appele": true,
-  "modele_llm": "mistral",
-  "meilleur_score": 0.71,
-  "sources": [
-    {"numero": 1, "citee": true, "score": 0.71, "fichier": "data/raw/pdf/spf_recommandations_2019.pdf",
-     "position": "page 4", "extrait": "Manger du poisson 2 fois par semaine, dont un poisson gras…"}
-  ],
-  "durees_s": {"recherche": 0.05, "generation": 6.3}
-}
-```
-*(chiffres d'illustration)*
-
-### Sans modèle de langage : le mode extractif
-
-Si Ollama ne répond pas (non installé, arrêté, modèle absent), `POST /chat` ne renvoie plus
-d'erreur : la réponse est **recopiée telle quelle** des phrases du meilleur passage les plus
-proches de la question, avec sa source [1] (`"mode": "extractif"`). Aucune génération, donc
-aucune invention possible ; l'interface l'indique sous la réponse. Le seuil de pertinence
-s'applique toujours : hors corpus, la réponse reste « je ne sais pas ».
-
-## Étape 6 — Interface web de chat
-
-```bash
-uvicorn src.api:app --reload
-```
-
-Puis ouvrir **http://127.0.0.1:8000/** : l'API sert directement l'interface (dossier `frontend/`).
-
-![Réponse avec ses sources](docs/captures/etape6_reponse_sources.png)
-
-### Choix techniques
-
-- **HTML5, CSS3 et JavaScript sans framework.** L'interface est servie par FastAPI
-  (`/app/`) : rien de plus à installer, et le front-end reste indépendant du back-end
-  (il ne parle à l'API que par des requêtes HTTP).
-- **Requêtes asynchrones** avec `fetch` et `async/await` vers les routes de l'API :
-  `GET /sante` (état de la base et du LLM), `POST /chat` (question → réponse), `POST /index` (réindexation).
-- **100 % hors ligne** : aucune police ni bibliothèque chargée depuis Internet ;
-  l'interface utilise les polices installées sur l'ordinateur.
-- Pour ouvrir l'interface depuis une autre adresse : `index.html?api=http://127.0.0.1:8000`
-  (l'API autorise ces appels grâce au middleware CORS).
-
-### Ce que voit l'utilisateur
-
-| Élément | Rôle |
-|---|---|
-| Indicateur d'état (en haut à droite) | nombre de passages indexés et disponibilité du LLM (Ollama) |
-| Exemples de questions | lancer une première question en un clic |
-| Réponse | texte rédigé par le LLM local ; les citations **[1]**, **[2]** sont des boutons |
-| Sources citées | sous chaque réponse : **nom du fichier, page ou section**, titre, auteur et pertinence |
-| Voir le passage | l'extrait exact transmis au LLM ; un clic sur une citation l'ouvre et le met en évidence |
-| Autres passages consultés | les passages fournis au LLM mais non cités, repliés |
-| Réponse hors corpus | encadré en pointillés, avec la raison (score sous le seuil, LLM non interrogé) |
-| Erreurs | message clair et marche à suivre (API arrêtée, Ollama arrêté, modèle absent) |
-| Réglages de la recherche | nombre de passages (K), seuil, format des documents, modèle, bouton de réindexation |
-
-La **jauge de pertinence** de chaque source reprend les 5 couleurs du Nutri-Score :
-plus la similarité cosinus avec la question est élevée, plus la jauge est pleine et verte.
-
-Pendant la génération (parfois plusieurs dizaines de secondes sur processeur),
-l'interface affiche le temps écoulé. Entrée envoie la question, Maj + Entrée passe à la ligne.
-L'interface s'adapte aux écrans de téléphone et se navigue au clavier.
-
-| Cas hors corpus et erreur | Sur téléphone |
-|---|---|
-| ![Hors corpus et erreur](docs/captures/etape6_hors_corpus_erreur.png) | ![Mobile](docs/captures/etape6_mobile.png) |
-
-*Captures réalisées avec un back-end de démonstration (réponses et chiffres d'exemple).*
-
-## Étape 7 — Tableau de bord du corpus (dataviz)
+### 5. Lancer l'API et l'interface
 
 ```bash
 uvicorn src.api:app
 ```
 
-Puis ouvrir **http://127.0.0.1:8000/app/dataviz.html** (ou le bouton « Tableau de bord » de l'assistant).
+Puis, dans le navigateur, ouvrir **http://127.0.0.1:8000/docs** et lancer **POST /index**
+(**Try it out**, puis **Execute**) pour remplir la base. La première fois, le modèle d'embedding
+(environ 470 Mo) est téléchargé, puis l'indexation dure environ 15 minutes sur processeur.
+La base est enregistrée dans `data/chroma/` : il n'y a pas à recommencer au prochain lancement.
 
-Toutes les données viennent de la route **`GET /dataviz`**, calculées par `src/dataviz.py`
-sur le contenu de la base vectorielle : le tableau de bord montre donc exactement ce que
-l'assistant consulte pour répondre. Sans lancer l'API : `python -m src.dataviz`
-affiche un résumé et écrit `data/dataviz.json`.
+### 6. Utiliser l'application
 
-| Graphique | Ce qu'il montre | Comment c'est calculé |
-|---|---|---|
-| Chiffres clés | documents, segments, mots, formats, longueur moyenne | métadonnées des segments et rapport d'ingestion |
-| Répartition par format | documents et segments par format (PDF, HTML, Word, texte) | regroupement des segments par `format` |
-| Longueur des segments | contrôle du découpage de l'étape 3 (tranches de 50 caractères) | `nombre_caracteres` de chaque segment |
-| Segments par document | quels documents pèsent le plus dans la base | regroupement par `doc_id` |
-| Carte sémantique | chaque segment est un point ; deux points proches ont un sens proche | **ACP** (analyse en composantes principales, par SVD avec numpy) des vecteurs à 384 dimensions |
-| Mots les plus fréquents | vocabulaire du corpus, sans les mots vides | comptage des mots de 3 lettres ou plus |
-| Proximité entre documents | quels documents traitent des mêmes sujets | similarité cosinus entre les vecteurs moyens des documents |
-| Tableau des documents | les mêmes données en texte, avec les mots-clés de chaque document | **TF-IDF** : fréquent dans le document, rare dans les autres |
-| Évaluation | résultats de `python -m src.evaluate`, s'ils existent | `data/vectors/evaluation.json` |
+| Adresse | Page |
+|---|---|
+| http://127.0.0.1:8000/ | l'assistant de questions |
+| http://127.0.0.1:8000/app/dataviz.html | le tableau de bord du corpus |
+| http://127.0.0.1:8000/docs | la documentation interactive de l'API |
 
-Choix techniques :
-- **SVG dessiné en JavaScript, sans bibliothèque** : la page reste 100 % hors ligne, comme l'assistant.
-- **Interactif** : survol de chaque barre, point ou case pour voir le détail ; filtre par format
-  qui s'applique aux documents, à la carte, à la matrice et au tableau.
-- **Couleurs des formats fixes et lisibles par les daltoniens** (palette vérifiée : écart ΔE ≥ 9
-  entre couleurs voisines) ; chaque couleur est accompagnée d'une légende ou d'une étiquette.
-- La carte montre au plus 2 000 points (échantillon régulier au-delà) pour rester fluide.
+## Utilisation
 
-![Tableau de bord](docs/captures/etape7_tableau_de_bord.png)
-
-![Carte sémantique et similarités](docs/captures/etape7_carte_similarites.png)
-
-*Captures réalisées sur un petit corpus de démonstration (les 6 notes DOCX et 4 fichiers d'exemple),
-avec un encodeur de test à la place du modèle d'embedding : la carte et la matrice seront
-différentes avec le vrai modèle et le corpus complet.*
-
-## Étape 8 — Validation finale
-
-Une fois le corpus indexé (Ollama facultatif : sans lui, les réponses sont extraites du corpus) :
+Le [manuel d'utilisation](docs/manuel_utilisateur.md) décrit l'interface, les réglages, le tableau de bord,
+l'ajout de documents et les solutions aux problèmes courants. En résumé :
 
 ```bash
-python -m src.validation              # mêmes options que src.rag : -k, --seuil, --llm
+uvicorn src.api:app                                  # lancer l'application
+python -m src.rag "Combien de fois par semaine faut-il manger du poisson ?"   # question en ligne de commande
+python -m src.validation                             # poser les 15 questions de validation
+python -m src.dataviz                                # résumé statistique du corpus
+python -m src.metadonnees --ecrire                   # créer les fiches des nouveaux documents
 ```
 
-Le script pose **toutes les questions** de `docs/questions_validation.md` et les **questions pièges**
-au pipeline RAG complet, puis écrit :
-- `docs/rapport_validation.md` : le rapport à joindre au rendu et à montrer en soutenance ;
-- `data/validation.json` : les mêmes résultats en JSON.
-
-| Contrôle automatique | Règle |
+| Route de l'API | Rôle |
 |---|---|
-| Le système a répondu | la réponse n'est pas « je ne sais pas » |
-| Source retrouvée | le fichier attendu est parmi les passages retrouvés (Top-K) |
-| Source citée | le fichier attendu est cité dans la réponse ([1], [2]…) |
-| Chiffres | tous les nombres de la réponse attendue sont dans la réponse (« 2,4 » = « 2.4 ») |
-| Piège évité | pour une question hors corpus, le système répond qu'il ne sait pas |
+| `POST /index` | ingestion et indexation complète du corpus, avec rapport JSON |
+| `DELETE /index` | vider la base |
+| `GET /recherche?q=…` | les passages les plus proches d'une question, sans LLM |
+| `POST /chat` | réponse avec ses sources (mode génératif ou extractif) |
+| `GET /stats`, `/documents`, `/segments/{id}` | contenu de la base |
+| `GET /dataviz` | données du tableau de bord |
+| `GET /sante` | état de la base et du modèle de langage |
 
-Les contrôles de source ne portent que sur les questions dont la colonne « Fichier source » est remplie.
-La justesse du contenu reste à vérifier par une personne : le rapport place la réponse attendue
-et la réponse obtenue côte à côte, avec une case « Correcte » à cocher.
+![Tableau de bord du corpus](docs/captures/etape7_tableau_de_bord.png)
 
-### Checklist avant la soutenance
+*Les captures ont été réalisées pendant le développement, sur un corpus de démonstration.*
 
-1. Tous les documents dans `data/raw/` et décrits dans `corpus_metadata.json`.
-2. `python -m src.ingest` : aucune erreur, avertissements relus.
-3. Colonnes « Fichier source » et « Page / section » remplies dans `docs/questions_validation.md`.
-4. `python -m src.evaluate --modeles multilingue,minilm` : choix de la taille et du modèle.
-5. `POST /index` avec les réglages retenus.
-6. `python -m src.validation` : rapport relu, cases « Correcte » cochées, seuil ajusté si besoin.
-7. Captures refaites sur le vrai corpus (assistant et tableau de bord).
-8. `python -m pytest -v` : tous les tests passent.
+## Résultats
 
+Mesurés sur l'ordinateur de développement (Windows 10, processeur seul, sans carte graphique).
+
+| Mesure | Valeur |
+|---|---|
+| Documents lus | 27 sur 27, sans erreur |
+| Texte extrait | 542 376 mots |
+| Segments indexés | 9 690 (500 caractères, chevauchement de 100) |
+| Durée de l'indexation | environ 15 min |
+| Temps de réponse (mode extractif) | environ 2 s par question |
+| Validation | **7 / 15** bonnes réponses avec la bonne source ; pièges évités 0 / 2 |
+
+Analyse de la validation (détail dans [`docs/questions_validation.md`](docs/questions_validation.md)) :
+- les réponses sont trouvées quand la question reprend les mots du document
+  (fruits et légumes, Nutri-Score, poisson, viande, activité physique) ;
+- elles sont manquées quand la question emploie un synonyme (« légumineuses » contre « légumes secs »)
+  ou quand la réponse est noyée dans un très long rapport ;
+- avec ce modèle d'embedding, les questions hors sujet obtiennent un score (0,61-0,62) proche de celui
+  des bonnes réponses (0,63-0,86) : le seuil seul ne suffit pas à les écarter, et le prompt strict du
+  LLM sert de second garde-fou en mode génératif ;
+- le corpus contient une recette de blanquette de veau : la question piège correspondante a été remplacée.
+
+## Tests et validation
+
+```bash
+python -m pytest -v          # 70 tests automatiques, sans rien télécharger
+python -m src.validation     # recette sur les 15 questions et les questions pièges
+```
+
+- **Tests unitaires** : chaque brique (nettoyage, lecture des formats, découpage, base, RAG, API,
+  tableau de bord) est testée avec un encodeur et un LLM factices.
+- **Tests d'intégration** (`tests/test_recette.py`) : un corpus dans les 4 formats traverse toute la chaîne,
+  des fichiers bruts jusqu'au rapport de validation, d'abord en Python puis par l'API REST et l'interface.
+- **Validation** : `python -m src.validation` écrit `docs/rapport_validation.md`, qui place la réponse attendue
+  et la réponse obtenue côte à côte avec des contrôles automatiques (source retrouvée, source citée, chiffres).
+
+## Structure du dépôt
+
+```
+-webcognitive/
+├── data/
+│   ├── raw/                 ← documents du corpus (pdf/, html/, docx/, txt/), jamais modifiés
+│   ├── processed/           ← texte nettoyé (généré, non versionné)
+│   ├── vectors/             ← segments et évaluation (générés, non versionnés)
+│   └── chroma/              ← base vectorielle (générée, non versionnée)
+├── src/                     ← code Python (voir « Architecture »)
+├── frontend/                ← interface web et tableau de bord
+├── tests/                   ← 70 tests pytest
+├── docs/
+│   ├── cahier_des_charges.md
+│   ├── specification_technique.md
+│   ├── manuel_utilisateur.md
+│   ├── sources.md
+│   ├── questions_validation.md
+│   ├── rapport_validation.md ← généré par python -m src.validation
+│   └── captures/
+├── corpus_metadata.json     ← fiche descriptive de chaque document
+├── requirements.txt
+└── README.md
+```
+
+## Limites et perspectives
+
+| Limite | Piste d'amélioration |
+|---|---|
+| Synonymes mal reconnus (« légumineuses » / « légumes secs ») | recherche **hybride** : mots-clés (BM25) et sens combinés |
+| Seuil de pertinence peu discriminant avec ce modèle | calibrer le seuil sur davantage de questions, ou ajouter un modèle de reclassement |
+| Mistral non installé sur la machine de développement (connexion et espace disque) | comparer les modes extractif et génératif sur les 15 questions |
+| Deux rapports représentent 70 % du texte | rééquilibrer le corpus et compléter les pages web (objectif : 35 documents) |
+| Indexation lente sur processeur (15 min) | modèle d'embedding plus léger, ou carte graphique |
+
+## Documentation
+
+| Document | Contenu |
+|---|---|
+| [Cahier des charges](docs/cahier_des_charges.md) | objectifs, périmètre, public, fonctionnalités, critères de réussite |
+| [Spécification technique](docs/specification_technique.md) | fonctionnement détaillé de chaque étape, schéma des données, routes, prompt, tests |
+| [Manuel d'utilisation](docs/manuel_utilisateur.md) | utiliser l'assistant et le tableau de bord, ajouter des documents, résoudre les problèmes |
+| [Sources du corpus](docs/sources.md) | où trouver chaque document |
+| [Questions de validation](docs/questions_validation.md) | les 15 questions, les réponses attendues et les résultats |
